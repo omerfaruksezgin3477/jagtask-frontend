@@ -74,3 +74,5 @@ Bu sayfa, birden fazla kişinin dahil olduğu projeleri ve görevleri yönetmek 
 
 * **Frontend:** HTML5, CSS3, Vanilla JavaScript
 * **Backend:** PHP (Sadece kullanıcı kayıt ve giriş işlemleri için)
+
+Link: [JAGTASK]([https://vercel.com](https://jagtask-frontend.vercel.app/html_pages/loding.k%C4%B1sm%C4%B1.html))
