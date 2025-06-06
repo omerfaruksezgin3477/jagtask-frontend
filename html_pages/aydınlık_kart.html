@@ -1092,7 +1092,7 @@
         document.querySelectorAll('.theme-option').forEach(option => {
           option.classList.remove('selected');
         });
-        document.querySelector(`.theme-option img[src="${imageUrl}"]`).closest('.theme-option').classList.add('selected');
+        document.querySelector(`.theme-option img[src="${imageUrl}"]`)?.closest('.theme-option').classList.add('selected');
       }
 
       // Sayfa yüklendiğinde kayıtlı temayı yükle
