@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head >
+     <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>  
+        body {
+            margin: 0;
+            height: 100vh;
+            padding-top: 70px; /* Header yuksekligi kadar boşluk */
+            background-image: url("assets/images/ANA_GIRISIN_ARKA_TEMA.png"); /* Yeni isim */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;  
+            position: relative;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-sizing: border-box;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .left-side {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            height: 50px;
+            width: auto;
+        }
+
+        .project-name {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            font-family: 'Arial Black', Arial, sans-serif;
+            user-select: none;
+        }
+
+        .right-side {
+            display: flex;
+            gap: 10px;
+        }
+
+        .social-icon {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .social-icon:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .social-icon img {
+            width: 20px;
+            height: 20px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .kartlar-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 100px;
+            margin-bottom: 60px;
+        }
+
+        .kart {
+            width: 200px;
+            height: 240px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            background-color: white;
+            transition: transform 0.3s ease;
+            position: relative;
+            margin-top: 350px;
+        }
+
+        .kart img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .kart:hover {
+            transform: scale(1.05);
+        }
+
+        .grup-kart {
+            position: absolute;
+            top: -20%;
+            left: 49.6%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        
+        .grup-kart:hover {
+            transform: translate(-50%, -50%) scale(1.03);
+        }
+
+        .yazi {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            text-align: center;
+            padding: 8px 5px;
+            font-size: 14px;
+            font-weight: bold;
+            box-sizing: border-box;
+            z-index: 2;
+        }
+
+        .kart-link {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            cursor: pointer;
+        }
+    </style>
+    <link rel="icon" href="assets/images/jagtask_logo.png" type="image/png"> 
+</head>
+<body>
+
+    <header class="top-bar">
+        <div class="left-side">
+            <img src="assets/images/jagtask_logo.png" alt="Logo" class="logo"> 
+            <span class="project-name">JAGTASK</span>
+        </div>
+        <div class="right-side">
+            <a href="https://instagram.com" target="_blank" class="social-icon" aria-label="Instagram">
+                <img src="https://cdn-icons-png.flaticon.com/512/1384/1384063.png" alt="Instagram Logo" />
+            </a>
+            <a href="https://twitter.com" target="_blank" class="social-icon" aria-label="X (Twitter)">
+                <img src="assets/images/x_sosmedya.png" alt="X Logo" class="logo"> 
+            </a>
+            <a href="https://facebook.com" target="_blank" class="social-icon" aria-label="Facebook">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook Logo" />
+            </a>
+        </div>
+    </header>
+
+        <div class="kartlar-wrapper">
+        <div class="kart">
+            <!-- Aydınlık Kart linki düzeltildi -->
+            <a href="http://localhost/gorev_takip_frontend/html_pages/ayd%C4%B1nl%C4%B1k_kart.html" class="kart-link"></a>
+            <!-- Resim yolu doğru: assets klasörü html_pages içinde -->
+            <img src="assets/images/aydinlik_alan_karti.png" alt="Aydınlık Kart">
+            <div class="yazi">Günlük işler için</div>
+        </div>
+
+        <div class="kart">
+            <!-- Karanlık Kart linki düzeltildi -->
+            <a href="http://localhost/gorev_takip_frontend/html_pages/karanl%C4%B1kkart.html" class="kart-link"></a>
+            <!-- Resim yolu doğru: assets klasörü html_pages içinde -->
+            <img src="assets/images/karanlik_alan_karti.png" alt="Karanlık Kart">
+            <div class="yazi">Hedefleri olanlar için</div>
+        </div>
+    </div>
+
+    <div class="kart grup-kart">
+        <!-- Grup Kart linki düzeltildi -->
+        <a href="http://localhost/gorev_takip_frontend/html_pages/EK%C4%B0PKART.html" class="kart-link"></a>
+        <!-- Resim yolu doğru: assets klasörü html_pages içinde -->
+        <img src="assets/images/grup_kart.png" alt="Grup Kart">
+        <div class="yazi">Grup işleri için</div>
+    </div>
+
+</body>
+</html>

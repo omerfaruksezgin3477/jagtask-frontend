@@ -1,0 +1,1117 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+     <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      /* Temel sıfırlamalar */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      /* Sayfa genişliği ve yüksekliği, font ayarı */
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, sans-serif; /* Sistem font yığını */
+      }
+
+      /* Arka plan resmi */
+      .main-background-img {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover; /* Resmi kapsayacak şekilde boyutlandır */
+        z-index: -2;
+      }
+
+      /* Glassmorphic kartlar için ortak stil */
+      .glassmorphic-card {
+        background-color: rgba(255, 255, 255, 0.153);
+        backdrop-filter: blur(6px);
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Sol Kenar Çubuğu (Sidebar) */
+      .sidebar {
+        width: 320px;
+        height: 100vh;
+        padding: 20px;
+        border-right: 1px solid rgba(255, 255, 255, 0.2); /* Sağ kenarlık */
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow-y: auto; /* İçerik fazla olursa kendi içinde kaydırır */
+        transition: width 0.3s ease, transform 0.3s ease, padding 0.3s ease,
+          border-right 0.3s ease; /* Geçişleri genişlettik */
+        z-index: 100; /* Pop-up'ların üzerinde olması için */
+      }
+
+      /* Sidebar daraltılmış durum */
+      .sidebar.collapsed {
+        width: 0; /* Sidebar tamamen gizlenir */
+        padding: 0; /* Padding kaldırılır */
+        border-right: none; /* Kenarlık kaldırılır */
+        transform: translateX(-100%); /* Sola doğru tamamen gizle */
+      }
+
+      /* Sidebar açma/kapama butonu */
+      .sidebar-toggle-btn {
+        position: fixed; /* Sabit konum */
+        top: 20px;
+        left: 20px; /* Sol üstte konumlandır */
+        background-color: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s, opacity 0.3s ease,
+          left 0.3s ease; /* Opaklık ve left için geçiş */
+        z-index: 101; /* Sidebar'dan daha yüksek z-index */
+        color: #0589c6; /* Mavi renk */
+      }
+
+      /* Sidebar açıkken düğme silikleşsin */
+      .sidebar-open .sidebar-toggle-btn {
+        opacity: 0.3; /* Silik görünüm */
+        left: 340px; /* Sidebar'ın genişliği kadar sağa kaydır (320px + 20px sağ padding) */
+      }
+
+      /* Sidebar kapalıyken düğme belirginleşsin */
+      .sidebar-closed .sidebar-toggle-btn {
+        opacity: 1; /* Tamamen belirgin */
+        left: 20px; /* Eski konumuna dön */
+      }
+
+      .sidebar-toggle-btn:hover {
+        background-color: #0589c6;
+        color: white;
+      }
+
+      /* Kullanıcı başlığı */
+      .user h2 {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 30px;
+      }
+
+      /* Menü bölüm başlığı */
+      .menu-section h3 {
+        font-size: 14px;
+        color: #777;
+        margin-bottom: 10px;
+        text-transform: uppercase; /* Tüm harfleri büyüt */
+        letter-spacing: 1px; /* Harf aralığı */
+      }
+
+      /* Tüm Görevler Butonu ve Kapsayıcısı */
+      .tasks-toggle-container {
+        margin-bottom: 10px;
+      }
+
+      .tasks-toggle-btn {
+        width: 100%;
+        padding: 10px 15px;
+        background-color: #0589c6; /* Buton rengi */
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .tasks-toggle-btn:hover {
+        background-color: #0366a0; /* Hover rengi */
+      }
+
+      .tasks-toggle-btn .toggle-icon {
+        font-size: 1.2em;
+        transition: transform 0.3s ease;
+      }
+
+      /* Tüm Görevler listesi gizlendiğinde ikonun dönmesi */
+      .tasks-toggle-btn.collapsed .toggle-icon {
+        transform: rotate(-90deg); /* Ok yukarı döner */
+      }
+
+      /* Görev listesi */
+      .task-list {
+        list-style: none; /* Madde işaretlerini kaldır */
+        padding-left: 0;
+      }
+
+      /* Ortak liste öğesi stili (Hem günlük plan hem de normal görevler için) */
+      .task-list li {
+        background-color: #eeeeee;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #333;
+        transition: all 0.3s ease; /* Hover efekti için yumuşak geçiş */
+        cursor: pointer;
+        display: flex; /* İçindeki öğeleri (metin ve buton) yan yana hizalamak için */
+        align-items: flex-start; /* Metin yukarıdan başlasın diye */
+        gap: 10px; /* Metin ile buton arasına boşluk ekler */
+      }
+
+      .task-list li:hover {
+        background-color: #e0e0e0;
+      }
+
+      /* Günlük plan ekle butonu için özel stil (liste öğesi gibi görünmesi için) */
+      #addDailyPlanBtn {
+        font-weight: bold;
+        color: #0589c6;
+        background-color: #e6f7ff;
+        border: 1px dashed #0589c6;
+        text-align: center;
+        justify-content: center; /* İçeriği ortalar */
+        margin-bottom: 15px; /* Daha belirgin bir ayrım için boşluk */
+      }
+
+      #addDailyPlanBtn:hover {
+        background-color: #d1efff;
+        color: #0366a0;
+      }
+
+      /* Görev listesi (Günlük plan hariç) gizlendiğinde */
+      #allTasksList.hidden li:not(#addDailyPlanBtn) {
+        display: none;
+      }
+
+      /* Görev detaylarını içeren div */
+      .task-details {
+        display: flex; /* Başlık ve açıklamayı düzenlemek için flex kullan */
+        flex-direction: column; /* Alt alta sırala */
+        flex-basis: 0;
+        flex-grow: 1;
+        min-width: 0;
+        overflow-wrap: break-word; /* Uzun kelimeleri veya metinleri kırarak satır sonuna sığdırır */
+      }
+
+      .task-details .task-title {
+        font-weight: bold; /* Başlığı kalın yap */
+        margin-bottom: 5px; /* Başlık ile açıklama arasına boşluk */
+        color: #222; /* Başlık rengini biraz daha koyu yapabiliriz */
+      }
+
+      .task-details .task-description {
+        font-size: 13px; /* Açıklama font boyutunu biraz küçült */
+        color: #555; /* Açıklama rengini biraz soluk yapabiliriz */
+      }
+
+      /* Silme butonu stili */
+      .delete-task-btn {
+        flex-shrink: 0; /* Butonun küçülmesini engeller, her zaman görünür kalır */
+        background: none;
+        border: none;
+        color: #e74c3c; /* Kırmızı renk */
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: color 0.2s ease;
+        padding: 0; /* Ekstra dolgu olmasın */
+        line-height: 1; /* Metin ile aynı hizada kalması için */
+        align-self: center; /* Butonu dikeyde ortalar, metin çok satırlı olsa bile */
+      }
+
+      /* Silme butonu üzerine gelindiğinde */
+      .delete-task-btn:hover {
+        color: #c0392b; /* Daha koyu kırmızı */
+      }
+
+      /* Görev ekle butonu */
+      .add-task {
+        margin-top: 30px;
+        font-size: 14px;
+        color: #ffffff;
+        background-color: #0589c6;
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      /* Görev ekle butonu üzerine gelindiğinde */
+      .add-task:hover {
+        background-color: #0366a0; /* Daha koyu mavi */
+      }
+
+      /* Sağ üstteki butonlar */
+      .top-right-buttons {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+      }
+
+      /* Sağ üstteki butonların genel stili */
+      .tooltip-button {
+        background-color: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      /* Sağ üstteki butonlar üzerine gelindiğinde */
+      .tooltip-button:hover {
+        background-color: #0589c6;
+        color: white;
+      }
+
+      /* Üstteki arama çubuğu */
+      .top-search {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 11;
+        width: 60%;
+        max-width: 600px;
+      }
+
+      /* Arama çubuğu input alanı */
+      .top-search input {
+        width: 100%;
+        padding: 12px 20px;
+        border-radius: 30px;
+        border: 1px solid rgba(6, 2, 203, 0.701);
+        font-size: 16px;
+        background-color: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(6px);
+        outline: none;
+        transition: 0.3s ease;
+      }
+
+      /* Arama çubuğu placeholder metni */
+      .top-search input::placeholder {
+        color: #002ad0b1;
+      }
+
+      /* Arama çubuğu odaklandığında */
+      .top-search input:focus {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-color: #0589c6;
+      }
+
+      /* Takvim Stilleri */
+      .calendar-container {
+        position: absolute;
+        top: 50%;
+        left: calc(58% - 130px);
+        transform: translate(-50%, -50%); /* Kendi genişliğinin yarısı kadar sola kaydırarak ortalama */
+        width: 700px; /* Takvimi daha yatay yapmak için genişliği artırdık */
+        padding: 20px;
+        color: #333;
+        z-index: 5; /* Diğer öğelerin üzerinde görünmesini sağlar */
+      }
+
+      /* Takvim başlığı (ay adı ve oklar) */
+      .calendar-header {
+        display: flex;
+        justify-content: space-between; /* Oklar ve ay adını ayırır */
+        align-items: center; /* Dikeyde hizalar */
+        margin-bottom: 20px;
+      }
+
+      /* Takvim başlığı butonları (oklar) */
+      .calendar-header button {
+        background: none; /* Arka plan yok */
+        border: none; /* Kenarlık yok */
+        font-size: 24px;
+        cursor: pointer;
+        color: #0589c6; /* Mavi renk */
+        transition: color 0.3s ease; /* Renk değişimi için yumuşak geçiş */
+      }
+
+      /* Takvim başlığı butonları üzerine gelindiğinde */
+      .calendar-header button:hover {
+        color: #0366a0; /* Daha koyu mavi */
+      }
+
+      /* Takvim başlığı ay/yıl metni */
+      .calendar-header h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      /* Takvim hafta günleri (Pzt, Sal vb.) */
+      .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr); /* 7 eşit sütun */
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #555;
+      }
+
+      /* Takvim günleri (1, 2, 3 vb.) */
+      .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr); /* 7 eşit sütun */
+        gap: 5px; /* Günler arasında boşluk */
+        text-align: center;
+      }
+
+      /* Her bir takvim günü hücresi */
+      .calendar-day {
+        padding: 10px 0;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s ease; /* Hover efekti için yumuşak geçiş */
+      }
+
+      /* Takvim günü hücresi üzerine gelindiğinde */
+      .calendar-day:hover {
+        background-color: rgba(0, 0, 0, 0.1); /* Hafif koyu arka plan */
+      }
+
+      /* Mevcut günü işaretlemek için stil */
+      .calendar-day.current-day {
+        background-color: #0589c6; /* Mavi arka plan */
+        color: white; /* Beyaz yazı */
+        font-weight: bold;
+      }
+
+      /* Boş veya etkin olmayan günler için stil */
+      .calendar-day.inactive {
+        color: #aaa; /* Soluk renk */
+        cursor: not-allowed; /* Tıklanamaz imleci */
+      }
+
+      /* Görev eklenen günü işaretlemek için stil */
+      .calendar-day.has-task {
+        background-color: #333; /* Siyah arka plan */
+        color: white; /* Beyaz yazı */
+        font-weight: bold;
+      }
+
+      /* Pop-up'lar için ortak stil */
+      .popup-base {
+        display: none; /* Varsayılan olarak gizli */
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 450px;
+        background-color: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        padding: 25px;
+        z-index: 20;
+        color: #333;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .popup-base h3 {
+        font-size: 22px;
+        margin-bottom: 15px;
+        color: #222;
+        text-align: center;
+      }
+
+      .popup-base textarea,
+      .popup-base input[type='text'] {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        font-size: 16px;
+        background-color: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(4px);
+        resize: vertical;
+        outline: none;
+        font-family: 'Segoe UI', sans-serif;
+        color: #333;
+        margin-bottom: 15px;
+      }
+
+      .popup-base textarea::placeholder,
+      .popup-base input[type='text']::placeholder {
+        color: #666;
+      }
+
+      .popup-base textarea:focus,
+      .popup-base input[type='text']:focus {
+        border-color: #0589c6;
+      }
+
+      .popup-close-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 28px;
+        color: #555;
+        cursor: pointer;
+        transition: color 0.2s ease;
+      }
+
+      .popup-close-btn:hover {
+        color: #e74c3c;
+      }
+
+      /* Kaydet/Ekle butonu stili */
+      .popup-save-btn {
+        display: block;
+        width: 100%;
+        padding: 10px 20px;
+        background-color: #0589c6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .popup-save-btn:hover {
+        background-color: #0366a0;
+      }
+
+      /* Arka plan karartması */
+      .overlay {
+        display: none; /* Varsayılan olarak gizli */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4); /* Hafif karartma */
+        z-index: 15; /* Pop-up'ın altında, diğer her şeyin üstünde */
+      }
+
+      /* Yeni Tema Pop-up Stilleri */
+      .theme-popup {
+        width: 500px;
+      }
+
+      .theme-options-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 15px;
+        padding: 10px;
+        max-height: 400px; /* Belirli bir yükseklik sınırı */
+        overflow-y: auto; /* Dikey kaydırma çubuğu */
+      }
+
+      .theme-option {
+        border: 2px solid transparent;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .theme-option.selected {
+        border-color: #0589c6; /* Seçili temayı vurgula */
+        box-shadow: 0 0 0 3px rgba(5, 137, 198, 0.5);
+      }
+
+      .theme-option:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .theme-option img {
+        width: 100%;
+        height: 80px; /* Resimlerin yüksekliğini belirle */
+        object-fit: cover; /* Resmi kutuya sığdır */
+        display: block;
+        border-radius: 6px; /* Hafif yuvarlak köşeler */
+      }
+
+      /* Öneri Pop-up Stilleri */
+      .suggestion-popup {
+        width: 400px;
+      }
+    </style>
+    <link rel="icon" href="assets/images/jagtask logo.png" type="image/png" />
+  </head>
+  <body>
+    <img
+      src="assets/images/aydınlık kart deniz manzara.jpg"
+      alt="Arka plan resmi"
+      class="main-background-img"
+      id="mainBackgroundImg"
+    />
+
+    <div class="sidebar glassmorphic-card" id="sidebar">
+      <a href="JAGTASK.html"><div class="user">
+        <h2>JAGTASK</h2> 
+      </div></a>
+
+      <div class="menu-section">
+        <h3>📌 Görevler</h3>
+        <div class="tasks-toggle-container">
+          <button class="tasks-toggle-btn" id="toggleAllTasksBtn">
+            Tüm Görevler <span class="toggle-icon">▼</span>
+          </button>
+        </div>
+        <ul class="task-list" id="allTasksList">
+          <li id="addDailyPlanBtn">Günlük plan ekle +</li>
+        </ul>
+      </div>
+
+      <div class="add-task" id="addTaskButton">➕ Görev Ekle</div>
+    </div>
+
+    <div class="sidebar-toggle-btn" id="sidebarToggleBtn">☰</div>
+
+    <div class="top-right-buttons">
+      <div class="tooltip-button" title="Öneri" id="suggestionButton">💡</div>
+      <div class="tooltip-button" title="Tema" id="themeButton">⋯</div>
+    </div>
+
+    <div class="top-search">
+      <input type="text" placeholder="Bir şey ara..." />
+    </div>
+
+    <div class="calendar-container glassmorphic-card">
+      <div class="calendar-header">
+        <button id="prevMonth">&lt;</button>
+        <h2 id="monthYear"></h2>
+        <button id="nextMonth">&gt;</button>
+      </div>
+      <div class="calendar-weekdays">
+        <div>Pzt</div>
+        <div>Sal</div>
+        <div>Çar</div>
+        <div>Per</div>
+        <div>Cum</div>
+        <div>Cmt</div>
+        <div>Paz</div>
+      </div>
+      <div class="calendar-days" id="calendarDays"></div>
+    </div>
+
+    <div class="daily-plan-popup popup-base" id="dailyPlanPopup">
+      <span class="popup-close-btn" id="closeDailyPlanPopupBtn">&times;</span>
+      <h3>Bugün ne yapmalıyım?</h3>
+      <textarea
+        id="dailyPlanTextarea"
+        placeholder="Bugünkü planlarını buraya yaz..."
+      ></textarea>
+      <button class="popup-save-btn" id="saveDailyPlanBtn">Kaydet</button>
+    </div>
+
+    <div class="add-new-task-popup popup-base" id="addNewTaskPopup">
+      <span class="popup-close-btn" id="closeNewTaskPopupBtn">&times;</span>
+      <h3>Yeni Görev Ekle</h3>
+      <input type="text" id="newTaskTitle" placeholder="Görev Başlığı" />
+      <textarea
+        id="newTaskDescription"
+        placeholder="Görevinizi buraya yazın..."
+      ></textarea>
+      <button class="popup-save-btn" id="saveNewTaskBtn">Görevi Ekle</button>
+    </div>
+
+    <div class="calendar-task-popup popup-base" id="calendarTaskPopup">
+      <span class="popup-close-btn" id="closeCalendarTaskPopupBtn"
+        >&times;</span
+      >
+      <h3 id="calendarTaskPopupTitle"></h3>
+      <input
+        type="text"
+        id="calendarTaskTitle"
+        placeholder="Görevin Başlığı"
+      />
+      <textarea
+        id="calendarTaskDescription"
+        placeholder="Görevin Detayları"
+      ></textarea>
+      <button class="popup-save-btn" id="saveCalendarTaskBtn">
+        Görevi Ekle
+      </button>
+    </div>
+
+    <div class="theme-popup popup-base" id="themePopup">
+      <span class="popup-close-btn" id="closeThemePopupBtn">&times;</span>
+      <h3>Tema Seç</h3>
+      <div class="theme-options-container" id="themeOptionsContainer">
+        </div>
+    </div>
+
+    <div class="suggestion-popup popup-base" id="suggestionPopup">
+      <span class="popup-close-btn" id="closeSuggestionPopupBtn">&times;</span>
+      <h3>Öneri Gönder</h3>
+      <textarea
+        id="suggestionTextarea"
+        placeholder="Önerinizi buraya yazın..."
+      ></textarea>
+      <button class="popup-save-btn" id="saveSuggestionBtn">Gönder</button>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <script>
+      const monthYearDisplay = document.getElementById('monthYear');
+      const calendarDaysGrid = document.getElementById('calendarDays');
+      const prevMonthBtn = document.getElementById('prevMonth');
+      const nextMonthBtn = document.getElementById('nextMonth');
+
+      let currentDate = new Date();
+      // Store tasks with their dates
+      const tasksByDate = {}; // Format: {'YYYY-MM-DD': [{title: '', description: ''}]}
+
+      const renderCalendar = () => {
+        calendarDaysGrid.innerHTML = '';
+
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const firstDayOfMonth = new Date(year, month, 1);
+        const lastDayOfMonth = new Date(year, month + 1, 0);
+
+        let firstDayOfWeek = firstDayOfMonth.getDay();
+        if (firstDayOfWeek === 0)
+          firstDayOfWeek = 7; // Convert Sunday (0) to 7 for consistency with Pzt-Paz
+        firstDayOfWeek = firstDayOfWeek - 1; // Adjust for Monday as first day of week
+
+        monthYearDisplay.textContent = new Intl.DateTimeFormat('tr-TR', {
+          year: 'numeric',
+          month: 'long',
+        }).format(firstDayOfMonth);
+
+        // Render leading empty days
+        for (let i = 0; i < firstDayOfWeek; i++) {
+          const emptyDiv = document.createElement('div');
+          emptyDiv.classList.add('calendar-day', 'inactive');
+          calendarDaysGrid.appendChild(emptyDiv);
+        }
+
+        // Render days of the month
+        for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
+          const dayDiv = document.createElement('div');
+          dayDiv.classList.add('calendar-day');
+          dayDiv.textContent = i;
+          dayDiv.dataset.day = i; // Store day number
+
+          const currentDayFullDate = new Date(year, month, i);
+          const formattedDate = currentDayFullDate.toISOString().split('T')[0]; //YYYY-MM-DD
+
+          // Check if today
+          const today = new Date();
+          if (
+            i === today.getDate() &&
+            month === today.getMonth() &&
+            year === today.getFullYear()
+          ) {
+            dayDiv.classList.add('current-day');
+          }
+
+          // Check if this day has tasks
+          if (tasksByDate[formattedDate] && tasksByDate[formattedDate].length > 0) {
+            dayDiv.classList.add('has-task');
+          }
+
+          dayDiv.addEventListener('click', () => {
+            if (!dayDiv.classList.contains('inactive')) {
+              openCalendarTaskPopup(currentDayFullDate);
+            }
+          });
+
+          calendarDaysGrid.appendChild(dayDiv);
+        }
+      };
+
+      prevMonthBtn.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+      });
+
+      nextMonthBtn.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+      });
+
+      renderCalendar();
+
+      const overlay = document.getElementById('overlay');
+      const dailyPlanPopup = document.getElementById('dailyPlanPopup');
+      const addNewTaskPopup = document.getElementById('addNewTaskPopup');
+      const calendarTaskPopup = document.getElementById('calendarTaskPopup');
+      const calendarTaskPopupTitle = document.getElementById('calendarTaskPopupTitle');
+      const calendarTaskTitleInput = document.getElementById('calendarTaskTitle');
+      const calendarTaskDescriptionTextarea = document.getElementById('calendarTaskDescription');
+      const saveCalendarTaskBtn = document.getElementById('saveCalendarTaskBtn');
+
+      let selectedDateForTask = null; // To store the date selected from the calendar
+
+      function openPopup(popupElement) {
+        popupElement.style.display = 'block';
+        overlay.style.display = 'block';
+      }
+
+      function closePopups() {
+        dailyPlanPopup.style.display = 'none';
+        addNewTaskPopup.style.display = 'none';
+        calendarTaskPopup.style.display = 'none';
+        themePopup.style.display = 'none';
+        suggestionPopup.style.display = 'none';
+        overlay.style.display = 'none';
+      }
+
+      function createDeleteButton(itemToRemove, dateString) {
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = '×';
+        deleteButton.classList.add('delete-task-btn');
+        deleteButton.addEventListener('click', (e) => {
+          e.stopPropagation();
+          itemToRemove.remove();
+
+          // Eğer bu görev bir tarihe bağlıysa, tasksByDate'den sil
+          if (dateString) {
+            const index = tasksByDate[dateString].findIndex(task => {
+              const taskTitle = itemToRemove.querySelector('.task-title');
+              return taskTitle && task.title === taskTitle.textContent;
+            });
+
+            if (index !== -1) {
+              tasksByDate[dateString].splice(index, 1);
+            }
+
+            // Eğer bu tarihe ait başka görev yoksa, takvimdeki günün sınıfını güncelle
+            if (tasksByDate[dateString].length === 0) {
+              delete tasksByDate[dateString];
+              const calendarDays = document.querySelectorAll('.calendar-day');
+              calendarDays.forEach(dayDiv => {
+                const day = parseInt(dayDiv.textContent);
+                const month = currentDate.getMonth();
+                const year = currentDate.getFullYear();
+                const fullDateOfCalendarDay = new Date(year, month, day);
+                if (fullDateOfCalendarDay.toISOString().split('T')[0] === dateString) {
+                  dayDiv.classList.remove('has-task');
+                }
+              });
+            }
+          }
+        });
+        return deleteButton;
+      }
+
+      const addDailyPlanBtn = document.getElementById('addDailyPlanBtn');
+      const closeDailyPlanPopupBtn = document.getElementById(
+        'closeDailyPlanPopupBtn'
+      );
+      const dailyPlanTextarea = document.getElementById('dailyPlanTextarea');
+      const saveDailyPlanBtn = document.getElementById('saveDailyPlanBtn');
+      const taskList = document.getElementById('allTasksList'); // Güncellendi
+
+      addDailyPlanBtn.addEventListener('click', () => {
+        openPopup(dailyPlanPopup);
+        dailyPlanTextarea.value = '';
+      });
+
+      closeDailyPlanPopupBtn.addEventListener('click', closePopups);
+
+      saveDailyPlanBtn.addEventListener('click', () => {
+        const planText = dailyPlanTextarea.value.trim();
+
+        if (planText) {
+          const newPlanItem = document.createElement('li');
+
+          const planTextSpan = document.createElement('span');
+          planTextSpan.classList.add('task-details');
+          planTextSpan.innerHTML = `<span class="task-title">Günlük Plan</span><span class="task-description">${planText}</span>`;
+          newPlanItem.appendChild(planTextSpan);
+
+          newPlanItem.appendChild(createDeleteButton(newPlanItem));
+          taskList.appendChild(newPlanItem);
+          closePopups();
+        } else {
+          alert('Lütfen bir günlük plan giriniz!');
+        }
+      });
+
+      const addTaskButton = document.getElementById('addTaskButton');
+      const closeNewTaskPopupBtn = document.getElementById(
+        'closeNewTaskPopupBtn'
+      );
+      const newTaskTitleInput = document.getElementById('newTaskTitle');
+      const newTaskDescriptionTextarea = document.getElementById(
+        'newTaskDescription'
+      );
+      const saveNewTaskBtn = document.getElementById('saveNewTaskBtn');
+
+      addTaskButton.addEventListener('click', () => {
+        openPopup(addNewTaskPopup);
+        newTaskTitleInput.value = '';
+        newTaskDescriptionTextarea.value = '';
+      });
+
+      closeNewTaskPopupBtn.addEventListener('click', closePopups);
+
+      saveNewTaskBtn.addEventListener('click', () => {
+        const taskTitle = newTaskTitleInput.value.trim();
+        const taskDescription = newTaskDescriptionTextarea.value.trim();
+
+        if (taskTitle || taskDescription) {
+          const newAddedTaskItem = document.createElement('li');
+
+          const taskDetailsDiv = document.createElement('div');
+          taskDetailsDiv.classList.add('task-details');
+
+          if (taskTitle) {
+            const taskTitleSpan = document.createElement('span');
+            taskTitleSpan.classList.add('task-title');
+            taskTitleSpan.textContent = taskTitle;
+            taskDetailsDiv.appendChild(taskTitleSpan);
+          }
+
+          if (taskDescription) {
+            const taskDescriptionSpan = document.createElement('span');
+            taskDescriptionSpan.classList.add('task-description');
+            taskDescriptionSpan.textContent = taskDescription;
+            taskDetailsDiv.appendChild(taskDescriptionSpan);
+          }
+
+          newAddedTaskItem.appendChild(taskDetailsDiv);
+          newAddedTaskItem.appendChild(createDeleteButton(newAddedTaskItem));
+
+          taskList.appendChild(newAddedTaskItem);
+          closePopups();
+        } else {
+          alert('Lütfen görev başlığı veya açıklamasını giriniz!');
+        }
+      });
+
+      // Calendar Task Popup functionality
+      const closeCalendarTaskPopupBtn = document.getElementById('closeCalendarTaskPopupBtn');
+
+      function openCalendarTaskPopup(date) {
+        selectedDateForTask = date;
+        const day = date.getDate();
+        const month = date.getMonth();
+        const year = date.getFullYear();
+
+        const formattedDateDisplay = new Intl.DateTimeFormat('tr-TR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }).format(date);
+
+        calendarTaskPopupTitle.textContent = `${formattedDateDisplay} için Görev Ekle`;
+        calendarTaskTitleInput.value = '';
+        calendarTaskDescriptionTextarea.value = '';
+        openPopup(calendarTaskPopup);
+      }
+
+      closeCalendarTaskPopupBtn.addEventListener('click', closePopups);
+
+      saveCalendarTaskBtn.addEventListener('click', () => {
+        const taskTitle = calendarTaskTitleInput.value.trim();
+        const taskDescription = calendarTaskDescriptionTextarea.value.trim();
+
+        if (taskTitle || taskDescription) {
+          const newAddedTaskItem = document.createElement('li');
+          const taskDetailsDiv = document.createElement('div');
+          taskDetailsDiv.classList.add('task-details');
+
+          const dateString = selectedDateForTask.toISOString().split('T')[0]; //YYYY-MM-DD
+
+          // Add task details with date
+          const taskDateSpan = document.createElement('span');
+          taskDateSpan.classList.add('task-title');
+          taskDateSpan.textContent = `${selectedDateForTask.getDate()} ${new Intl.DateTimeFormat('tr-TR', { month: 'short' }).format(selectedDateForTask)}`;
+          taskDetailsDiv.appendChild(taskDateSpan);
+
+          if (taskTitle) {
+            const taskTitleSpan = document.createElement('span');
+            taskTitleSpan.classList.add('task-description'); // Using description style for title for now, or create new class if needed
+            taskTitleSpan.textContent = taskTitle;
+            taskDetailsDiv.appendChild(taskTitleSpan);
+          }
+
+          if (taskDescription) {
+            const taskDescriptionSpan = document.createElement('span');
+            taskDescriptionSpan.classList.add('task-description');
+            taskDescriptionSpan.textContent = taskDescription;
+            taskDetailsDiv.appendChild(taskDescriptionSpan);
+          }
+
+          newAddedTaskItem.appendChild(taskDetailsDiv);
+          newAddedTaskItem.appendChild(createDeleteButton(newAddedTaskItem, dateString));
+          taskList.appendChild(newAddedTaskItem);
+
+          // Store task in tasksByDate
+          if (!tasksByDate[dateString]) {
+            tasksByDate[dateString] = [];
+          }
+          tasksByDate[dateString].push({ title: taskTitle, description: taskDescription });
+
+          // Add 'has-task' class to the corresponding calendar day
+          const calendarDays = document.querySelectorAll('.calendar-day');
+          calendarDays.forEach(dayDiv => {
+            const day = parseInt(dayDiv.textContent);
+            const month = currentDate.getMonth();
+            const year = currentDate.getFullYear();
+            const fullDateOfCalendarDay = new Date(year, month, day);
+
+            if (fullDateOfCalendarDay.toDateString() === selectedDateForTask.toDateString()) {
+              dayDiv.classList.add('has-task');
+            }
+          });
+
+          closePopups();
+        } else {
+          alert('Lütfen görevin başlığını veya detaylarını giriniz!');
+        }
+      });
+
+      // Öneri Pop-up Fonksiyonelliği
+      const suggestionButton = document.getElementById('suggestionButton');
+      const suggestionPopup = document.getElementById('suggestionPopup');
+      const closeSuggestionPopupBtn = document.getElementById('closeSuggestionPopupBtn');
+      const suggestionTextarea = document.getElementById('suggestionTextarea');
+      const saveSuggestionBtn = document.getElementById('saveSuggestionBtn');
+
+      suggestionButton.addEventListener('click', () => {
+        openPopup(suggestionPopup);
+        suggestionTextarea.value = '';
+      });
+
+      closeSuggestionPopupBtn.addEventListener('click', closePopups);
+
+      saveSuggestionBtn.addEventListener('click', () => {
+        const suggestionText = suggestionTextarea.value.trim();
+
+        if (suggestionText) {
+          alert('Öneriniz alındı, teşekkür ederiz!');
+          closePopups();
+        } else {
+          alert('Lütfen bir öneri giriniz!');
+        }
+      });
+
+      overlay.addEventListener('click', closePopups);
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closePopups();
+        }
+      });
+
+      const sidebar = document.getElementById('sidebar');
+      const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+
+      // Sidebar'ı başlangıçta kapalı hale getir.
+      document.body.classList.add('sidebar-closed');
+      sidebar.classList.add('collapsed');
+
+      sidebarToggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        document.body.classList.toggle('sidebar-open');
+        document.body.classList.toggle('sidebar-closed');
+      });
+
+      // Yeni eklenen kısım: Tüm Görevler butonunun işlevselliği
+      const toggleAllTasksBtn = document.getElementById('toggleAllTasksBtn');
+
+      toggleAllTasksBtn.addEventListener('click', () => {
+        taskList.classList.toggle('hidden'); // Görev listesini gizle/göster
+        toggleAllTasksBtn.classList.toggle('collapsed'); // Buton ikonunu değiştir
+      });
+
+      // --- Tema Seçim Pop-up Fonksiyonelliği ---
+      const themeButton = document.getElementById('themeButton');
+      const themePopup = document.getElementById('themePopup');
+      const closeThemePopupBtn = document.getElementById('closeThemePopupBtn');
+      const themeOptionsContainer = document.getElementById('themeOptionsContainer');
+      const mainBackgroundImg = document.getElementById('mainBackgroundImg');
+
+      // Örnek tema resimleri (kendi resimlerinizi kullanın)
+      // `resimler/` klasörünüzde bu resimlerin olduğundan emin olun.
+      const themeImages = [
+        "assets/images/aydınlık kart deniz manzara.jpg",
+        'assets/images/aydınlık kart deyirmen.jpg', //dusundurucu        
+        'assets/images/deniz aydınlık kart.jpg',
+        'assets/images/aydınlık kart cami.jpg',
+        'assets/images/aydınlık kart  uzat.jpg',
+        
+        //'assets/images/theme10.jpg',
+
+      ];
+
+      function renderThemeOptions() {
+        themeOptionsContainer.innerHTML = ''; // Önceki seçenekleri temizle
+
+        const currentTheme = localStorage.getItem('selectedTheme') || themeImages[0]; // Kayıtlı temayı veya varsayılanı al
+
+        themeImages.forEach((imageUrl) => {
+          const themeOptionDiv = document.createElement('div');
+          themeOptionDiv.classList.add('theme-option');
+          if (imageUrl === currentTheme) {
+            themeOptionDiv.classList.add('selected'); // Seçili temayı işaretle
+          }
+
+          const img = document.createElement('img');
+          img.src = imageUrl;
+          img.alt = 'Tema Resmi';
+
+          themeOptionDiv.appendChild(img);
+          themeOptionsContainer.appendChild(themeOptionDiv);
+
+          themeOptionDiv.addEventListener('click', () => {
+            setTheme(imageUrl);
+            closePopups(); // Tema seçildikten sonra pop-up'ı kapat
+          });
+        });
+      }
+
+      function setTheme(imageUrl) {
+        mainBackgroundImg.src = imageUrl;
+        localStorage.setItem('selectedTheme', imageUrl); // Temayı kaydet
+
+        // Seçili sınıfı güncelle
+        document.querySelectorAll('.theme-option').forEach(option => {
+          option.classList.remove('selected');
+        });
+        document.querySelector(`.theme-option img[src="${imageUrl}"]`).closest('.theme-option').classList.add('selected');
+      }
+
+      // Sayfa yüklendiğinde kayıtlı temayı yükle
+      document.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('selectedTheme');
+        if (savedTheme) {
+          setTheme(savedTheme);
+        } else {
+          setTheme(themeImages[0]); // Varsayılan temayı ayarla
+        }
+        renderThemeOptions(); // Tema seçeneklerini render et
+      });
+
+      themeButton.addEventListener('click', () => {
+        renderThemeOptions(); // Pop-up açılmadan önce tema seçeneklerini güncelle
+        openPopup(themePopup);
+      });
+
+      closeThemePopupBtn.addEventListener('click', closePopups);
+    </script>
+  </body>
+</html>

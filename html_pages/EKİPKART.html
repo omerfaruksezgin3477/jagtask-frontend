@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JAGTASK</title>
+    <style>
+        /* CSS Değişkenleri (Temalandırma için) */
+        :root {
+            --ana-arka-plan: #1a2a3a;
+            --ikincil-arka-plan: rgba(26, 42, 58, 0.8);
+            --vurgu-rengi: #e67e22;
+            --vurgu-hover-rengi: #d35400;
+            --metin-rengi: #ecf0f1;
+            --ikincil-metin-rengi: #bdc3c7;
+            --kenarlik-rengi: rgba(255, 255, 255, 0.15);
+            --baslik-arka-plan: rgba(255, 255, 255, 0.08);
+            --gorev-kutusu-arka-lan: rgba(255, 255, 255, 0.05);
+            --gorev-kutusu-hover-arka-lan: rgba(255, 255, 255, 0.12);
+            --onemli-gorev-arka-plan: rgba(255, 215, 0, 0.15);
+            --onemli-gorev-kenarlik: 1px solid gold;
+            --dugme-kenarlik: 1px solid rgba(255, 255, 255, 0.3);
+            --modal-arka-plan: #ffffff;
+            --modal-metin-rengi: #34495e;
+            --modal-kenarlik: 1px solid #ddd;
+            --golge-hafif: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --golge-orta: 0 5px 15px rgba(0, 0, 0, 0.3);
+            --golge-kalin: 0 10px 25px rgba(0, 0, 0, 0.4);
+            --pill-bg: #e0e0e0;
+            --pill-text: #444;
+            --pill-border: 1px solid #ccc;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--ana-arka-plan);
+            color: var(--metin-rengi);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .left-menu {
+            width: 280px;
+            background: var(--ikincil-arka-plan);
+            border-right: 1px solid var(--kenarlik-rengi);
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            box-sizing: border-box;
+            color: var(--metin-rengi);
+            position: relative;
+            box-shadow: var(--golge-orta);
+            z-index: 1;
+        }
+
+        .left-menu .team-name {
+            font-size: 28px;
+            font-weight: 600;
+            margin-top: 15px;
+            color: var(--metin-rengi);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .left-menu hr {
+            border: none;
+            border-bottom: 2px solid var(--kenarlik-rengi);
+            margin: 35px 0;
+            margin-top: 70px;
+        }
+
+        .left-menu button {
+            background: transparent;
+            border: var(--dugme-kenarlik);
+            color: var(--metin-rengi);
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 15px;
+            width: 100%;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .left-menu button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .left-menu .btn-gorev, .left-menu .btn-onemli {
+            margin-top: 15px;
+        }
+
+        .tasks-list, .important-tasks-list {
+            margin-top: 15px;
+            margin-bottom: 25px;
+            color: var(--ikincil-metin-rengi);
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 1px solid var(--kenarlik-rengi);
+            padding-top: 15px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--vurgu-rengi) rgba(255, 255, 255, 0.1);
+        }
+
+        .tasks-list::-webkit-scrollbar, .important-tasks-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .tasks-list::-webkit-scrollbar-track, .important-tasks-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .tasks-list::-webkit-scrollbar-thumb, .important-tasks-list::-webkit-scrollbar-thumb {
+            background-color: var(--vurgu-rengi);
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tasks-list .task-item, .important-tasks-list .task-item {
+            background-color: var(--gorev-kutusu-arka-lan);
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            box-shadow: var(--golge-hafif);
+        }
+
+        .tasks-list .task-item:hover, .important-tasks-list .task-item:hover {
+            background-color: var(--gorev-kutusu-hover-arka-lan);
+            transform: translateY(-1px);
+        }
+
+        .tasks-list .task-item.important, .important-tasks-list .task-item.important {
+            background-color: var(--onemli-gorev-arka-plan);
+            border: var(--onemli-gorev-kenarlik);
+            color: var(--metin-rengi);
+        }
+
+        .task-item .task-title {
+            flex-grow: 1;
+            font-weight: 500;
+            color: var(--metin-rengi);
+        }
+
+        .task-item .task-star {
+            color: gold;
+            margin-left: 8px;
+            font-size: 1.2em;
+        }
+
+        .delete-task {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            width: 1px;
+            height: 1px;
+            font-size: 1px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: background 0.3s, color 0.3s;
+            padding: 0;
+            line-height: 1;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+        }
+
+        .delete-task:hover {
+            background: #2b41c0;
+            color: #fff;
+        }
+
+        .right-menu {
+            width: 280px;
+            background: var(--ikincil-arka-plan);
+            border-left: 1px solid var(--kenarlik-rengi);
+            padding: 25px;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            height: 100vh;
+            box-shadow: var(--golge-orta);
+            z-index: 1;
+        }
+
+        .right-menu .header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--metin-rengi);
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 0;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .right-menu .header:hover {
+            color: var(--vurgu-rengi);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 0;
+            overflow: auto;
+        }
+
+        .img {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            opacity: 0.8;
+        }
+
+        .img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .right-menu .bottom-buttons {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .tooltip-box {
+            position: relative;
+            background-color: rgba(33, 31, 31, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--metin-rengi);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 24px;
+            user-select: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: var(--golge-hafif);
+        }
+
+        .tooltip-box:hover {
+            background-color: var(--ana-arka-plan);
+            transform: translateY(-3px);
+        }
+
+        .tooltip-box .tooltip-text {
+            visibility: hidden;
+            width: max-content;
+            background-color: black;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 6px 10px;
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 13px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+        .tooltip-box:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .calendar {
+            background: rgba(40, 40, 40, 0.6);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--golge-kalin);
+            width: 600px;
+            text-align: center;
+            color: var(--metin-rengi);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .calendar-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--metin-rengi);
+        }
+
+        .calendar-nav button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--ikincil-metin-rengi);
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+        }
+
+        .calendar-nav button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--metin-rengi);
+            transform: scale(1.1);
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--ikincil-metin-rengi);
+            font-size: 15px;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .calendar-day {
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--metin-rengi);
+            background-color: rgba(255, 255, 255, 0.05);
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .calendar-day:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .calendar-day.today {
+            background: var(--vurgu-rengi);
+            font-weight: bold;
+            color: white;
+            box-shadow: var(--golge-hafif);
+        }
+        .calendar-day.today:hover {
+            background: var(--vurgu-hover-rengi);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--modal-arka-plan);
+            margin: 10% auto;
+            padding: 30px;
+            border: var(--modal-kenarlik);
+            width: 90%;
+            max-width: 450px;
+            border-radius: 12px;
+            color: var(--modal-metin-rengi);
+            position: relative;
+            box-shadow: var(--golge-kalin);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .close {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: var(--vurgu-rengi);
+        }
+
+        .modal-content h2 {
+            color: var(--modal-metin-rengi);
+            margin-bottom: 20px;
+            font-size: 26px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .modal-content input, .modal-content textarea {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            color: var(--modal-metin-rengi);
+            background-color: #f9f9f9;
+            font-size: 16px;
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-content button {
+            background-color: var(--vurgu-rengi);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .modal-content button:hover {
+            background-color: var(--vurgu-hover-rengi);
+            transform: translateY(-1px);
+        }
+
+        .participant-list {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            padding-right: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--vurgu-rengi) rgba(0,0,0,0.1);
+        }
+        .participant-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .participant-list::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+        }
+        .participant-list::-webkit-scrollbar-thumb {
+            background-color: var(--vurgu-rengi);
+            border-radius: 10px;
+            border: 2px solid rgba(0,0,0,0.1);
+        }
+
+        .participant-list .participant-item {
+            background-color: rgba(0, 0, 0, 0.35);
+            border-radius: 10px;
+            padding: 12px 18px;
+            margin: 0;
+            box-shadow: var(--golge-hafif);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--metin-rengi);
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .participant-list .participant-item:hover {
+            background-color: rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .delete-participant {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            flex-shrink: 0;
+            box-shadow: var(--golge-hafif);
+        }
+
+        .delete-participant:hover {
+            background-color: #c0392b;
+            transform: scale(1.1);
+        }
+
+        #participants-button {
+            background-color: var(--vurgu-rengi);
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: var(--golge-orta);
+            text-align: center;
+        }
+
+        #participants-button:hover {
+            background-color: var(--vurgu-hover-rengi);
+            transform: scale(1.03);
+        }
+
+        .task-modal-content {
+            background-color: var(--modal-arka-plan);
+            margin: 5% auto;
+            padding: 35px;
+            border-radius: 12px;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            color: var(--modal-metin-rengi);
+            position: relative;
+            box-shadow: var(--golge-kalin);
+        }
+
+        .task-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .task-modal-header h2 {
+            margin: 0;
+            font-size: 28px;
+            color: #333;
+        }
+
+        .star-button {
+            background: none;
+            border: none;
+            font-size: 38px;   /* Eskiden 28px idi, şimdi daha büyük */
+            cursor: pointer;
+            color: #ccc;
+            transition: transform 0.2s, color 0.2s;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .star-button.starred {
+            color: gold;
+            color:#FFFF00;
+            text-shadow: 0 0 18px #FFD700, 0 0 2px #fff;
+        }
+
+        .star-button:hover {
+            transform: scale(1.15);
+            color: #FFC300;
+        }
+
+        .task-modal-body {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .task-details {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            min-width: 250px;
+        }
+
+        .task-details label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 17px;
+        }
+
+        .task-details input[type="text"],
+        .task-details textarea {
+            border: var(--modal-kenarlik);
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 20px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .task-details textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .task-participants {
+            flex: 1;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            border: var(--modal-kenarlik);
+            max-height: 280px;
+            overflow-y: auto;
+            min-width: 200px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--vurgu-rengi) #f0f0f0;
+        }
+        .task-participants::-webkit-scrollbar {
+            width: 8px;
+        }
+        .task-participants::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+        .task-participants::-webkit-scrollbar-thumb {
+            background-color: var(--vurgu-rengi);
+            border-radius: 10px;
+            border: 2px solid #f8f8f8;
+        }
+
+        .task-participants h3 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #333;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+
+        .participant-checkboxes label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: normal;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .participant-checkboxes input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        .task-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .task-modal-footer button {
+            padding: 14px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+        }
+
+        .task-details-modal-content {
+            background-color: var(--modal-arka-plan);
+            margin: 5% auto;
+            padding: 35px;
+            border-radius: 12px;
+            max-width: 550px;
+            color: var(--modal-metin-rengi);
+            position: relative;
+            box-shadow: var(--golge-kalin);
+        }
+
+        .task-details-modal-content h2 {
+            margin-top: 0;
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .task-details-modal-content p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #555;
+            font-size: 16px;
+        }
+
+        .task-details-modal-content .details-label {
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 17px;
+        }
+
+        .task-details-modal-content .assigned-participants-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 15px;
+        }
+
+        .task-details-modal-content .assigned-participants-list li {
+            background-color: #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #444;
+            font-size: 14px;
+        }
+
+        .add-task-participants-selection {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .add-task-participants-selection h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .add-task-participant-checkboxes {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            gap: 10px;
+            white-space: nowrap;
+            scrollbar-width: thin;
+            scrollbar-color: var(--vurgu-rengi) #e0e0e0;
+        }
+
+        .add-task-participant-checkboxes::-webkit-scrollbar {
+            height: 8px;
+        }
+        .add-task-participant-checkboxes::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 10px;
+        }
+        .add-task-participant-checkboxes::-webkit-scrollbar-thumb {
+            background-color: var(--vurgu-rengi);
+            border-radius: 10px;
+            border: 2px solid #f0f0f0;
+        }
+
+        .add-task-participant-checkboxes label {
+            background-color: var(--pill-bg);
+            color: var(--pill-text);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: var(--pill-border);
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            flex-shrink: 0;
+            box-shadow: var(--golge-hafif);
+        }
+
+        .add-task-participant-checkboxes label:hover {
+            background-color: #d0d0d0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .add-task-participant-checkboxes input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.1);
+            cursor: inherit;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                overflow-y: auto;
+            }
+            .left-menu, .right-menu {
+                width: 100%;
+                border-right: none;
+                border-left: none;
+                border-bottom: 1px solid var(--kenarlik-rengi);
+                box-shadow: none;
+            }
+            .left-menu {
+                order: 1;
+            }
+            .main-content {
+                order: 2;
+                padding: 15px;
+            }
+            .right-menu {
+                order: 3;
+                padding-bottom: 80px;
+            }
+            .right-menu .bottom-buttons {
+                position: static;
+                margin-top: 20px;
+                justify-content: center;
+            }
+            .calendar {
+                width: 100%;
+                padding: 15px;
+                box-sizing: border-box;
+            }
+            .modal-content, .task-modal-content, .task-details-modal-content {
+                width: 95%;
+                margin: 5% auto;
+                padding: 20px;
+            }
+            .task-modal-body {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .add-task-participant-checkboxes {
+                flex-wrap: wrap;
+                overflow-x: hidden;
+                justify-content: center;
+            }
+        }
+
+        /* Öneri Modalı */
+        #suggestionModal, #themeModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .suggestion-modal-content, .theme-modal-content {
+            background-color: var(--modal-arka-plan);
+            margin: 10% auto;
+            padding: 30px;
+            border: var(--modal-kenarlik);
+            width: 90%;
+            max-width: 450px;
+            border-radius: 12px;
+            color: var(--modal-metin-rengi);
+            position: relative;
+            box-shadow: var(--golge-kalin);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .suggestion-modal-content h2, .theme-modal-content h2 {
+            color: var(--modal-metin-rengi);
+            margin-bottom: 20px;
+            font-size: 26px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        #notificationBox {
+            display: none;
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2b41c0;
+            color: #fff;
+            padding: 16px 32px;
+            border-radius: 8px;
+            z-index: 2000;
+            font-size: 18px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+
+        .theme-box {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            transition: border-color 0.3s;
+        }
+
+        .theme-box img {
+            width: 100%;
+            height: 60px;
+            object-fit: cover;
+        }
+        .theme-box span {
+            font-size: 13px;
+            color: #333;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="left-menu"> 
+        <a href="JAGTASK.html">
+        <div class="team-name">JAGTASK</div></a>
+        <hr />
+        <button class="btn-gorev">Görev Ekle</button>
+        <div class="tasks-list">
+        </div>
+        <div class="important-tasks-list">
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="img">
+            <img src="assets/images/köprü ekip kart.jpg" alt="Arka Plan" />
+        </div>
+        <div class="calendar">
+            <div class="calendar-header">
+                <button id="prevMonth">&lt;</button>
+                <div class="calendar-title" id="monthYear"></div>
+                <button id="nextMonth">&gt;</button>
+            </div>
+            <div class="calendar-weekdays">
+                <div>Pzt</div>
+                <div>Sal</div>
+                <div>Çar</div>
+                <div>Per</div>
+                <div>Cum</div>
+                <div>Cmt</div>
+                <div>Paz</div>
+            </div>
+            <div class="calendar-days" id="calendarDays">
+            </div>
+        </div>
+    </div>
+
+    <div class="right-menu">
+        <button class="header" id="participants-button">Katılımcılar</button>
+        <div class="participant-list">
+        </div>
+        <div class="bottom-buttons">
+            <div class="tooltip-box">
+                <span class="tooltip-text">ÖNERİ</span>
+                <span>💡</span>
+            </div>
+            <div class="tooltip-box">
+                <span class="tooltip-text">TEMA</span>
+                <span>...</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Yeni Görev Ekle</h2>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="text" id="taskTitle" placeholder="Görev Başlığı" />
+              <button id="addTaskImportantStar" class="star-button" type="button" title="Bu görevi önemli yap">★</button>
+            </div>
+            <textarea id="taskDescription" placeholder="Görev Açıklaması"></textarea>
+            <div class="add-task-participants-selection">
+                <h3>Katılımcılar</h3>
+                <div id="addTaskParticipantCheckboxes" class="add-task-participant-checkboxes">
+                </div>
+            </div>
+            <button id="saveTask">Görevi Kaydet</button>
+        </div>
+    </div>
+
+    <div id="addParticipantModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Katılımcı Ekle</h2>
+            <input type="text" id="participantName" placeholder="Katılımcı Adı" />
+            <button id="addParticipant">Katılımcı Ekle</button>
+        </div>
+    </div>
+
+    <div id="taskDetailsModal" class="modal">
+        <div class="task-modal-content">
+            <span class="close" id="closeTaskDetailsModalButton">&times;</span>
+            <div class="task-modal-header">
+                <h2 id="displayTaskTitle">Görev Başlığı</h2>
+                <button class="star-button" id="toggleImportantButton">★</button>
+            </div>
+            <div class="task-modal-body">
+                <div class="task-details">
+                    <label>Açıklama:</label>
+                    <p id="displayTaskDescription">Açıklama bulunmuyor.</p>
+                    <label>Atanan Kişiler:</label>
+                    <ul id="displayAssignedParticipants" class="assigned-participants-list">
+                    </ul>
+                    <span id="displayImportantStatus" style="font-weight: bold; color: var(--vurgu-rengi);"></span>
+                </div>
+                <div class="task-participants">
+                    <h3>Katılımcıları Ata</h3>
+                    <div id="participantCheckboxes" class="participant-checkboxes">
+                    </div>
+                </div>
+            </div>
+            <div class="task-modal-footer">
+                <button id="updateTaskButton">Görevi Güncelle</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Öneri Modalı -->
+    <div id="suggestionModal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeSuggestionModal">&times;</span>
+        <h2>Önerinizi Yazın</h2>
+        <textarea id="suggestionText" placeholder="Önerinizi buraya yazın..." style="width:100%;min-height:100px;"></textarea>
+        <button id="sendSuggestionBtn">Gönder</button>
+      </div>
+    </div>
+
+    <!-- Tema Modalı -->
+    <div id="themeModal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeThemeModal">&times;</span>
+        <h2>Tema Seçin</h2>
+        <div id="themeList" style="display:flex;flex-wrap:wrap;gap:10px;">
+          <!-- Temalar buraya gelecek -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Bildirim Kutusu -->
+    <div id="notificationBox" style="display:none;position:fixed;top:30px;left:50%;transform:translateX(-50%);background:#2b41c0;color:#fff;padding:16px 32px;border-radius:8px;z-index:2000;font-size:18px;box-shadow:0 4px 16px rgba(0,0,0,0.2);"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addTaskButton = document.querySelector('.btn-gorev');
+            const importantTasksButton = document.querySelector('.btn-onemli');
+            const addTaskModal = document.getElementById('addTaskModal');
+            const addParticipantModal = document.getElementById('addParticipantModal');
+            const taskDetailsModal = document.getElementById('taskDetailsModal');
+            const saveTaskButton = document.getElementById('saveTask');
+            const addParticipantButton = document.getElementById('addParticipant');
+            const participantsButton = document.getElementById('participants-button');
+            const taskTitleInput = document.getElementById('taskTitle');
+            const taskDescriptionInput = document.getElementById('taskDescription');
+            const participantNameInput = document.getElementById('participantName');
+            const tasksList = document.querySelector('.tasks-list');
+            const importantTasksList = document.querySelector('.important-tasks-list');
+            const participantList = document.querySelector('.participant-list');
+            const closeButtons = document.querySelectorAll('.modal .close');
+            const calendarDaysContainer = document.getElementById('calendarDays');
+            const monthYearDisplay = document.getElementById('monthYear');
+            const prevMonthButton = document.getElementById('prevMonth');
+            const nextMonthButton = document.getElementById('nextMonth');
+
+            const displayTaskTitle = document.getElementById('displayTaskTitle');
+            const displayTaskDescription = document.getElementById('displayTaskDescription');
+            const displayAssignedParticipants = document.getElementById('displayAssignedParticipants');
+            const displayImportantStatus = document.getElementById('displayImportantStatus');
+            const participantCheckboxesContainer = document.getElementById('participantCheckboxes');
+            const updateTaskButton = document.getElementById('updateTaskButton');
+            const toggleImportantButton = document.getElementById('toggleImportantButton');
+            const closeTaskDetailsModalButton = document.getElementById('closeTaskDetailsModalButton');
+
+            const addTaskParticipantCheckboxesContainer = document.getElementById('addTaskParticipantCheckboxes');
+
+            let currentTaskBeingEdited = null;
+
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            let participants = JSON.parse(localStorage.getItem('participants')) || [];
+
+            let currentDate = new Date();
+            let currentMonth = currentDate.getMonth();
+            let currentYear = currentDate.getFullYear();
+
+            // MODAL ve BİLDİRİM KODLARI
+const suggestionModal = document.getElementById('suggestionModal');
+const closeSuggestionModal = document.getElementById('closeSuggestionModal');
+const sendSuggestionBtn = document.getElementById('sendSuggestionBtn');
+const suggestionText = document.getElementById('suggestionText');
+const notificationBox = document.getElementById('notificationBox');
+
+const themeModal = document.getElementById('themeModal');
+const closeThemeModal = document.getElementById('closeThemeModal');
+const themeList = document.getElementById('themeList');
+
+// Sağ alttaki butonlar
+document.querySelectorAll('.tooltip-box').forEach(box => {
+    box.addEventListener('click', function () {
+        if (this.textContent.includes('ÖNERİ')) {
+            suggestionModal.style.display = 'flex';
+        }
+        if (this.textContent.includes('TEMA')) {
+            themeModal.style.display = 'flex';
+        }
+    });
+});
+
+// Modal kapatma
+closeSuggestionModal.onclick = () => suggestionModal.style.display = 'none';
+closeThemeModal.onclick = () => themeModal.style.display = 'none';
+window.addEventListener('click', function(event) {
+    if (event.target === suggestionModal) suggestionModal.style.display = 'none';
+    if (event.target === themeModal) themeModal.style.display = 'none';
+});
+
+// Öneri gönderme
+sendSuggestionBtn.onclick = function() {
+    if (suggestionText.value.trim() === "") {
+        alert("Lütfen bir öneri yazın.");
+        return;
+    }
+    suggestionModal.style.display = 'none';
+    suggestionText.value = '';
+    showNotification("Öneriniz alınmıştır, teşekkür ederiz!");
+};
+
+function showNotification(msg) {
+    notificationBox.textContent = msg;
+    notificationBox.style.display = 'block';
+    setTimeout(() => {
+        notificationBox.style.display = 'none';
+    }, 3000);
+}
+
+// Tema seçenekleri (10 kutucuk, her birinde resim)
+const themes = [
+    {name: "Altın Şehir", img: "assets/images/şehir manzarsaı ekip.jpg"},
+    {name: "Köprü Altı", img: "assets/images/köprü ekip kart.jpg"},
+    {name: "Garip Yol", img: "assets/images/garip yol.jpg"},
+    {name: "Uçan Balon", img: "assets/images/ekip_balonlar .jpg"},
+    {name: "Tema 5", img: "assets/images/EKİP_SONBAHAR.jpg"},  
+    {name: "Tema 6", img: "assets/images/ekip_tas.jpg"},
+    {name: "Tema 7", img: "assets/images/ekip_orman.jpg"},
+    {name: "Tema 8", img: "assets/images/ekip_dağevi.jpg"},
+    {name: "Tema 9", img: "assets/images/ekip_sal.jpg"},
+    {name: "Tema 10", img: "assets/images/ekip_rüya.jpg"},
+    {name: "Tema 11", img: "assets/images/ekip_kopru.jpg"},
+    {name: "Tema 12", img: "assets/images/ekip_lavanta.jpg"} 
+];
+
+
+
+
+themeList.innerHTML = '';
+themes.forEach((theme, i) => {
+    const box = document.createElement('div');
+    box.className = 'theme-box';
+    box.style.width = '80px';
+    box.style.height = '80px';
+    box.style.border = '2px solid #ccc';
+    box.style.borderRadius = '10px';
+    box.style.overflow = 'hidden';
+    box.style.cursor = 'pointer';
+    box.style.display = 'flex';
+    box.style.flexDirection = 'column';
+    box.style.alignItems = 'center';
+    box.style.justifyContent = 'center';
+    box.style.background = '#f5f5f5';
+    box.style.transition = 'border-color 0.3s';
+
+    const img = document.createElement('img');
+    img.src = theme.img;
+    img.alt = theme.name;
+    img.style.width = '100%';
+    img.style.height = '60px';
+    img.style.objectFit = 'cover';
+    box.appendChild(img);
+
+    const label = document.createElement('span');
+    label.textContent = theme.name;
+    label.style.fontSize = '13px';
+    label.style.color = '#333';
+    label.style.marginTop = '4px';
+    box.appendChild(label);
+
+    box.onclick = function() {
+        const bgImgDiv = document.querySelector('.img img');
+        if (bgImgDiv) {
+            bgImgDiv.src = theme.img;
+            localStorage.setItem('selectedThemeImg', theme.img);
+        }
+        themeModal.style.display = 'none';
+        showNotification(`"${theme.name}" teması seçildi!`);
+    };
+
+    box.onmouseover = function() {
+        box.style.borderColor = '#e67e22';
+    };
+    box.onmouseout = function() {
+        box.style.borderColor = '#ccc';
+    };
+
+    themeList.appendChild(box);
+});
+
+// Sayfa yüklenince arka planı kontrol et
+const savedThemeImg = localStorage.getItem('selectedThemeImg');
+if (savedThemeImg) {
+    const bgImgDiv = document.querySelector('.img img');
+    if (bgImgDiv) {
+        bgImgDiv.src = savedThemeImg;
+    }
+}
+
+            function closeModal(modalElement) {
+                modalElement.style.display = 'none';
+            }
+
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    closeModal(button.closest('.modal'));
+                });
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target === addTaskModal) closeModal(addTaskModal);
+                if (event.target === addParticipantModal) closeModal(addParticipantModal);
+                if (event.target === taskDetailsModal) closeModal(taskDetailsModal);
+                if (event.target === suggestionModal) closeModal(suggestionModal);
+                if (event.target === themeModal) closeModal(themeModal);
+            });
+
+            function saveTasks() {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                renderTasks();
+                renderCalendar(currentMonth, currentYear);
+            }
+
+            function saveParticipants() {
+                localStorage.setItem('participants', JSON.stringify(participants));
+                renderParticipants();
+                populateAddTaskParticipants();
+            }
+
+            function renderParticipants() {
+                participantList.innerHTML = '';
+
+                if (participants.length === 0) {
+                    const noParticipantMessage = document.createElement('p');
+                    noParticipantMessage.textContent = 'Henüz katılımcı yok.';
+                    noParticipantMessage.style.textAlign = 'center';
+                    noParticipantMessage.style.color = 'var(--ikincil-metin-rengi)';
+                    participantList.appendChild(noParticipantMessage);
+                    return;
+                }
+
+                participants.forEach(participant => {
+                    const participantItem = document.createElement('div');
+                    participantItem.classList.add('participant-item');
+                    participantItem.dataset.id = participant.id;
+
+                    const participantNameSpan = document.createElement('span');
+                    participantNameSpan.textContent = participant.name;
+                    participantItem.appendChild(participantNameSpan);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.classList.add('delete-participant');
+                    deleteButton.textContent = 'X';
+                    deleteButton.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        deleteParticipant(participant.id);
+                    });
+                    participantItem.appendChild(deleteButton);
+
+                    participantList.appendChild(participantItem);
+                });
+            }
+
+            addParticipantButton.addEventListener('click', function() {
+                const name = participantNameInput.value.trim();
+                if (name) {
+                    const newParticipant = {
+                        id: Date.now().toString(),
+                        name: name
+                    };
+                    participants.push(newParticipant);
+                    saveParticipants();
+                    participantNameInput.value = '';
+                    closeModal(addParticipantModal);
+                } else {
+                    alert('Lütfen bir katılımcı adı girin.');
+                }
+            });
+
+            function deleteParticipant(id) {
+                if (confirm('Bu katılımcıyı silmek istediğinizden emin misiniz? Bu, ilgili görevlerden de kaldırılacaktır.')) {
+                    participants = participants.filter(p => p.id !== id);
+
+                    tasks.forEach(task => {
+                        task.assignedTo = task.assignedTo.filter(pId => pId !== id);
+                    });
+
+                    saveParticipants();
+                    saveTasks();
+
+                    if (taskDetailsModal.style.display === 'flex' && currentTaskBeingEdited !== null) {
+                        showTaskDetails(currentTaskBeingEdited);
+                    }
+                }
+            }
+
+            function populateAddTaskParticipants() {
+                addTaskParticipantCheckboxesContainer.innerHTML = '';
+                if (participants.length === 0) {
+                    addTaskParticipantCheckboxesContainer.innerHTML = '<p style="color:#555; text-align: center; margin-top:10px;">Henüz katılımcı yok. Lütfen önce katılımcı ekleyin.</p>';
+                    return;
+                }
+
+                participants.forEach(participant => {
+                    const label = document.createElement('label');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = participant.id;
+                    checkbox.name = 'addTaskParticipant';
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(participant.name));
+                    addTaskParticipantCheckboxesContainer.appendChild(label);
+                });
+            }
+
+            const addTaskImportantStar = document.getElementById('addTaskImportantStar');
+            let addTaskImportant = false;
+
+            addTaskImportantStar.addEventListener('click', function() {
+                addTaskImportant = !addTaskImportant;
+                addTaskImportantStar.classList.toggle('starred', addTaskImportant);
+            });
+
+            // Görev eklerken:
+            saveTaskButton.addEventListener('click', function() {
+                const title = taskTitleInput.value.trim();
+                const description = taskDescriptionInput.value.trim();
+                const assignedTo = Array.from(addTaskParticipantCheckboxesContainer.querySelectorAll('input[name="addTaskParticipant"]:checked'))
+                                      .map(checkbox => checkbox.value);
+
+                if (title) {
+                    const newTask = {
+                        id: Date.now().toString(),
+                        title: title,
+                        description: description,
+                        date: new Date(currentYear, currentMonth, calendarDaysContainer.querySelector('.calendar-day.selected')?.dataset.date || new Date().getDate()).toISOString().split('T')[0],
+                        important: addTaskImportant, // önemli mi?
+                        assignedTo: assignedTo
+                    };
+                    tasks.push(newTask);
+                    saveTasks();
+                    taskTitleInput.value = '';
+                    taskDescriptionInput.value = '';
+                    addTaskParticipantCheckboxesContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                    addTaskImportant = false;
+                    addTaskImportantStar.classList.remove('starred');
+                    closeModal(addTaskModal);
+                } else {
+                    alert('Görev başlığı boş olamaz.');
+                }
+            });
+
+            function renderTasks() {
+                tasksList.innerHTML = '';
+                importantTasksList.innerHTML = '';
+
+                const normalTasks = tasks.filter(task => !task.important);
+                const importantTasks = tasks.filter(task => task.important);
+
+                if (normalTasks.length === 0) {
+                    const noTaskMessage = document.createElement('p');
+                    noTaskMessage.textContent = 'Henüz görev yok.';
+                    noTaskMessage.style.textAlign = 'center';
+                    noTaskMessage.style.color = 'var(--ikincil-metin-rengi)';
+                    tasksList.appendChild(noTaskMessage);
+                } else {
+                    normalTasks.forEach(task => {
+                        createTaskItem(task, tasksList);
+                    });
+                }
+
+                if (importantTasks.length === 0) {
+                    const noImportantTaskMessage = document.createElement('p');
+                    noImportantTaskMessage.textContent = 'Henüz önemli görev yok.';
+                    noImportantTaskMessage.style.textAlign = 'center';
+                    noImportantTaskMessage.style.color = 'var(--ikincil-metin-rengi)';
+                    importantTasksList.appendChild(noImportantTaskMessage);
+                } else {
+                    importantTasks.forEach(task => {
+                        createTaskItem(task, importantTasksList, true);
+                    });
+                }
+            }
+
+            function createTaskItem(task, parentElement, isImportant = false) {
+                const taskItem = document.createElement('div');
+                taskItem.classList.add('task-item');
+                if (isImportant) {
+                    taskItem.classList.add('important');
+                }
+                taskItem.dataset.id = task.id;
+
+                // Görev başlığı ve tarihini birlikte göster
+                const taskTitleSpan = document.createElement('span');
+                taskTitleSpan.classList.add('task-title');
+                taskTitleSpan.textContent = task.title;
+
+                // Tarih etiketi
+                const dateSpan = document.createElement('span');
+                dateSpan.classList.add('task-date');
+                // Tarihi Türkçe ve kısa biçimde göster
+                if (task.date) {
+                    const dateObj = new Date(task.date);
+                    dateSpan.textContent = ` (${dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })})`;
+                    dateSpan.style.color = "#888";
+                    dateSpan.style.fontSize = "13px";
+                    dateSpan.style.marginLeft = "6px";
+                }
+
+                // Başlık ve tarihi aynı satırda göster
+                const titleDateWrapper = document.createElement('span');
+                titleDateWrapper.style.display = "flex";
+                titleDateWrapper.style.alignItems = "center";
+                titleDateWrapper.appendChild(taskTitleSpan);
+                titleDateWrapper.appendChild(dateSpan);
+
+                taskItem.appendChild(titleDateWrapper);
+
+                taskItem.addEventListener('click', function() {
+                    showTaskDetails(task.id);
+                });
+
+                if (task.important) {
+                    const starIcon = document.createElement('span');
+                    starIcon.classList.add('task-star');
+                    starIcon.textContent = '★';
+                    taskItem.appendChild(starIcon);
+                }
+
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-task');
+                deleteButton.textContent = 'X';
+                deleteButton.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    deleteTask(task.id);
+                });
+                taskItem.appendChild(deleteButton);
+
+                parentElement.appendChild(taskItem);
+            }
+
+            function deleteTask(id) {
+                if (confirm('Bu görevi silmek istediğinizden emin misiniz?')) {
+                    tasks = tasks.filter(task => task.id !== id);
+                    saveTasks();
+                    closeModal(taskDetailsModal);
+                }
+            }
+
+            function showTaskDetails(taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                if (!task) return;
+
+                currentTaskBeingEdited = taskId;
+
+                displayTaskTitle.textContent = task.title;
+                displayTaskDescription.textContent = task.description || 'Açıklama bulunmuyor.';
+
+                displayAssignedParticipants.innerHTML = '';
+                if (task.assignedTo && task.assignedTo.length > 0) {
+                    task.assignedTo.forEach(pId => {
+                        const participant = participants.find(p => p.id === pId);
+                        if (participant) {
+                            const li = document.createElement('li');
+                            li.textContent = participant.name;
+                            displayAssignedParticipants.appendChild(li);
+                        }
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.textContent = 'Kimseye atanmadı.';
+                    displayAssignedParticipants.appendChild(li);
+                }
+
+                if (task.important) {
+                    displayImportantStatus.textContent = 'Bu görev önemli!';
+                    toggleImportantButton.classList.add('starred');
+                } else {
+                    displayImportantStatus.textContent = '';
+                    toggleImportantButton.classList.remove('starred');
+                }
+
+                populateParticipantCheckboxesForDetailsModal(task.assignedTo);
+
+                taskDetailsModal.style.display = 'flex';
+            }
+
+            function populateParticipantCheckboxesForDetailsModal(assignedParticipantIds) {
+                participantCheckboxesContainer.innerHTML = '';
+
+                if (participants.length === 0) {
+                    participantCheckboxesContainer.innerHTML = '<p style="color:#555; text-align: center; margin-top:10px;">Henüz katılımcı yok.</p>';
+                    return;
+                }
+
+                participants.forEach(participant => {
+                    const label = document.createElement('label');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = participant.id;
+                    checkbox.name = 'taskParticipant';
+                    if (assignedParticipantIds && assignedParticipantIds.includes(participant.id)) {
+                        checkbox.checked = true;
+                    }
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(participant.name));
+                    participantCheckboxesContainer.appendChild(label);
+                });
+            }
+
+            updateTaskButton.addEventListener('click', function() {
+                if (currentTaskBeingEdited !== null) {
+                    const taskIndex = tasks.findIndex(t => t.id === currentTaskBeingEdited);
+                    if (taskIndex !== -1) {
+                        const updatedAssignedTo = Array.from(participantCheckboxesContainer.querySelectorAll('input[name="taskParticipant"]:checked'))
+                                                     .map(checkbox => checkbox.value);
+
+                        tasks[taskIndex].assignedTo = updatedAssignedTo;
+                        saveTasks();
+                        closeModal(taskDetailsModal);
+                    }
+                }
+            });
+
+            toggleImportantButton.addEventListener('click', function() {
+                if (currentTaskBeingEdited !== null) {
+                    const taskIndex = tasks.findIndex(t => t.id === currentTaskBeingEdited);
+                    if (taskIndex !== -1) {
+                        tasks[taskIndex].important = !tasks[taskIndex].important;
+                        saveTasks();
+                        showTaskDetails(currentTaskBeingEdited);
+                    }
+                }
+            });
+
+            closeTaskDetailsModalButton.addEventListener('click', function() {
+                taskDetailsModal.style.display = 'none';
+                currentTaskBeingEdited = null;
+            });
+
+            function renderCalendar(month, year) {
+                calendarDaysContainer.innerHTML = '';
+                monthYearDisplay.textContent = new Date(year, month).toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
+
+                const firstDayOfMonth = new Date(year, month, 1).getDay();
+                const adjustedFirstDay = (firstDayOfMonth + 6) % 7;
+
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                for (let i = 0; i < adjustedFirstDay; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.classList.add('calendar-day');
+                    emptyDay.classList.add('empty');
+                    calendarDaysContainer.appendChild(emptyDay);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day');
+                    dayElement.textContent = day;
+                    dayElement.dataset.date = day;
+
+                    const today = new Date();
+                    if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                        dayElement.classList.add('today');
+                    }
+
+                    const tasksForThisDay = tasks.filter(task => {
+                        const taskDate = new Date(task.date);
+                        return taskDate.getFullYear() === year &&
+                               taskDate.getMonth() === month &&
+                               taskDate.getDate() === day;
+                    });
+
+                    if (tasksForThisDay.length > 0) {
+                        const taskIndicator = document.createElement('span');
+                        taskIndicator.classList.add('task-indicator');
+                        taskIndicator.style.display = 'block';
+                        taskIndicator.style.fontSize = '0.7em';
+                        taskIndicator.style.marginTop = '3px';
+                        taskIndicator.style.color = 'var(--vurgu-rengi)';
+                        taskIndicator.textContent = `${tasksForThisDay.length} görev`;
+                        dayElement.appendChild(taskIndicator);
+
+                        dayElement.title = tasksForThisDay.map(t => t.title).join('\n');
+                    }
+
+                    dayElement.addEventListener('click', function() {
+                        const previouslySelected = calendarDaysContainer.querySelector('.calendar-day.selected');
+                        if (previouslySelected) {
+                            previouslySelected.classList.remove('selected');
+                        }
+                        dayElement.classList.add('selected');
+
+                        addTaskModal.style.display = 'flex';
+                    });
+
+                    calendarDaysContainer.appendChild(dayElement);
+                }
+            }
+
+            prevMonthButton.addEventListener('click', function() {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderCalendar(currentMonth, currentYear);
+            });
+
+            nextMonthButton.addEventListener('click', function() {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderCalendar(currentMonth, currentYear);
+            });
+
+            addTaskButton.addEventListener('click', function() {
+                taskTitleInput.value = '';
+                taskDescriptionInput.value = '';
+                populateAddTaskParticipants();
+                addTaskModal.style.display = 'flex';
+            });
+
+            participantsButton.addEventListener('click', function() {
+                addParticipantModal.style.display = 'flex';
+                participantNameInput.value = '';
+            });
+
+            renderParticipants();
+            renderTasks();
+            renderCalendar(currentMonth, currentYear);
+        });
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</body>
+</html>

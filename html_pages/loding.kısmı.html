@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Giriş Yap / Kayıt Ol</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background-image: url("assets/images/loginkısmı5.0.png"); /* Arka plan görselinizin yolu */
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .loginkutu {
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.8);
+            width: 260px;
+            height: 350px; /* Yüksekliği artırdık */
+            border-radius: 10px;
+            padding: 60px 20px 20px 20px;
+            box-sizing: border-box;
+            transform: translate(-50px, -30px); /* İsteğe bağlı konumlandırma */
+            z-index: 1;
+        }
+
+        .loginkutu::before {
+            content: "KAYIT OL"; /* Başlığı değiştirdik */
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            z-index: 2;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input[type="text"], input[type="password"], input[type="email"] {
+            background-color: #555555;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            color: white;
+            font-size: 14px;
+        }
+
+        input[type="text"]::placeholder,
+        input[type="password"]::placeholder,
+        input[type="email"]::placeholder {
+            color: #828282;
+        }
+
+        input[type="submit"] {
+            background-color: #222222;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #444444;
+        }
+
+        #message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .toggle-form-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .toggle-form-link a {
+            color: #ADD8E6; /* Açık mavi */
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .toggle-form-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <link rel="icon" href="assets/images/jagtask logo.png" type="image/png">
+</head>
+<body>
+
+    <div class="loginkutu">
+        <form id="registerForm">
+            <input type="text" id="nameInput" placeholder="Ad Soyad" name="name" required>
+            <input type="email" id="emailInput" placeholder="Email" name="email" required>
+            <input type="text" id="usernameInput" placeholder="Kullanıcı Adı" name="username" required>
+            <input type="password" id="passwordInput" placeholder="Şifre" name="password" required>
+            <input type="submit" value="Kayıt Ol">
+        </form>
+
+        <form id="loginForm" style="display: none;">
+            <input type="text" id="loginUsernameInput" placeholder="Kullanıcı Adı" name="username" required>
+            <input type="password" id="loginPasswordInput" placeholder="Şifre" name="password" required>
+            <input type="submit" value="Giriş Yap">
+        </form>
+
+        <p id="message"></p>
+        <div class="toggle-form-link">
+            <a href="#" id="toggleFormLink">Zaten hesabın var mı? Giriş Yap</a>
+        </div>
+    </div>
+
+    <script>
+   document.addEventListener('DOMContentLoaded', function() {
+    const registerForm = document.getElementById('registerForm');
+    const loginForm = document.getElementById('loginForm');
+    const toggleFormLink = document.getElementById('toggleFormLink');
+    const messageDisplay = document.getElementById('message');
+
+    const nameInput = document.getElementById('nameInput');
+    const emailInput = document.getElementById('emailInput');
+    const usernameInput = document.getElementById('usernameInput');
+    const passwordInput = document.getElementById('passwordInput');
+
+    const loginUsernameInput = document.getElementById('loginUsernameInput');
+    const loginPasswordInput = document.getElementById('loginPasswordInput');
+
+    const loginKutu = document.querySelector('.loginkutu');
+
+    // Kullanıcı zaten giriş yapmış olsa bile login sayfasına geldiğinde otomatik yönlendirme YAPILMAYACAK.
+    // Kullanıcının manuel giriş yapması beklenecek.
+    // if (localStorage.getItem('user_id')) {
+    //     window.location.href = 'http://localhost/gorev_takip_frontend/html_pages/JAGTASK.html';
+    //     return;
+    // }
+
+    // Form geçişini yönetme
+    toggleFormLink.addEventListener('click', function(event) {
+        event.preventDefault();
+        messageDisplay.textContent = ''; // Mesajı temizle
+
+        if (registerForm.style.display !== 'none') { // Eğer kayıt formu açıksa, giriş formuna geç
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'flex';
+            toggleFormLink.textContent = 'Yeni hesap oluştur? Kayıt Ol';
+            loginKutu.dataset.formType = 'login';
+        } else { // Eğer giriş formu açıksa, kayıt formuna geç
+            registerForm.style.display = 'flex';
+            loginForm.style.display = 'none';
+            toggleFormLink.textContent = 'Zaten hesabın var mı? Giriş Yap';
+            loginKutu.dataset.formType = 'register';
+        }
+    });
+
+    // KAYIT FORMUNU İŞLEME
+    registerForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('username', username);
+        formData.append('password', password);
+
+        try {
+            const response = await fetch('https://jagtask-backend.vercel.app/register.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                messageDisplay.style.color = 'green';
+                messageDisplay.textContent = result.message + ' Şimdi giriş yapabilirsiniz.';
+                // Kayıt başarılı olduğunda otomatik olarak giriş formuna geçiş yap
+                toggleFormLink.click();
+                // Yönlendirme burada yapılmıyor, kullanıcının manuel giriş yapması bekleniyor.
+            } else {
+                messageDisplay.style.color = 'red';
+                messageDisplay.textContent = 'Kayıt başarısız: ' + result.message;
+            }
+        } catch (error) {
+            console.error('Kayıt sırasında bir hata oluştu:', error);
+            messageDisplay.style.color = 'red';
+            messageDisplay.textContent = 'Sunucuya bağlanırken bir hata oluştu. Laragonun çalıştığından emin olun.';
+        }
+    });
+
+    // GİRİŞ FORMUNU İŞLEME
+    loginForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const username = loginUsernameInput.value.trim();
+        const password = loginPasswordInput.value.trim();
+
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        try {
+            const response = await fetch('https://jagtask-backend.vercel.app/login.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                messageDisplay.style.color = 'green';
+                messageDisplay.textContent = `Hoş geldiniz, ${result.name || result.username}! Yönlendiriliyorsunuz...`;
+
+                localStorage.setItem('user_id', result.user_id);
+                localStorage.setItem('username', result.username);
+                localStorage.setItem('name', result.name);
+                localStorage.setItem('email', result.email);
+
+                // Giriş başarılı olduğunda ana sayfaya yönlendirme satırı aktif hale getirildi
+                window.location.href = 'http://localhost/gorev_takip_frontend/html_pages/JAGTASK.html'; // <<< BU SATIR ARTIK AKTİF
+            } else {
+                messageDisplay.style.color = 'red';
+                messageDisplay.textContent = 'Giriş başarısız: ' + result.message;
+            }
+        } catch (error) {
+            console.error('Giriş sırasında bir hata oluştu:', error);
+            messageDisplay.style.color = 'red';
+            messageDisplay.textContent = 'Sunucuya bağlanırken bir hata oluştu. Laragonun çalıştığından emin olun.';
+        }
+    });
+});
+
+    </script>
+</body>
+</html>

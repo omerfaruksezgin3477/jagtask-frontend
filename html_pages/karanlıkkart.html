@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JAGTALK</title>
+  <style>
+    /* Genel Sıfırlama ve Temel Stiller */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      height: 100vh;
+      background: linear-gradient(#00000000);
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Arka Plan Resmi */
+    .img {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+    }
+
+    .img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Sol Üst Kutular Konteyneri */
+    .sol-ust-kutular {
+      position: relative;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 2;
+    }
+
+    /* Bireysel Kutular (Öneri, Tema) */
+    .kutu {
+      width: 40px;
+      height: 40px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      font-size: 1.2rem;
+      transition: background 0.3s ease;
+      z-index: 3;
+    }
+
+    .kutu:hover {
+      background-color: rgba(0, 174, 255, 0.3);
+    }
+
+    /* Tooltip Stili */
+    .kutu::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: -28px;
+      background-color: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      opacity: 0;
+      transition: 0.2s ease;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .kutu:hover::after {
+      opacity: 1;
+    }
+
+    /* Arama Kutusu */
+    .arama-container {
+      position: absolute;
+      top: 20px;
+      right: 680px;
+    }
+
+    .arama-container input[type="text"] {
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 20px;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      outline: none;
+      font-size: 0.9rem;
+    }
+
+    /* Kullanıcı Adı */
+    .kullanici-adi {
+      position: absolute;
+      top: 22px;
+      right: 80px;
+      font-size: 1rem;
+      font-weight: 700;
+      z-index: 2;
+    }
+
+    /* Ana İçerik Alanı */
+    .ana-icerik {
+      margin-top: 100px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    /* Takvim Konteyneri */
+    .takvim-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(5px);
+      width: 80%;
+      max-width: 900px;
+    }
+
+    /* Takvim Okları */
+    .ok {
+      font-size: 2rem;
+      cursor: pointer;
+      user-select: none;
+      transition: 0.2s ease;
+    }
+
+    .ok:hover {
+      color: #5b249e;
+    }
+
+    /* Takvim İçeriği */
+    .takvim {
+      text-align: center;
+      width: 100%;
+    }
+
+    .takvim h2 {
+      margin-bottom: 10px;
+    }
+
+    /* Takvim Günleri Grid */
+    .gunler {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .gunler div {
+      padding: 10px;
+      background: transparent;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Bugünün Tarihini Vurgulama */
+    .gunler div.bugun {
+      background-color: rgba(138, 43, 226, 0.5);
+      border: 1px solid rgba(138, 43, 226, 0.8);
+      font-weight: bold;
+    }
+
+    .gunler div.gorevli {
+      background-color: rgba(255, 255, 255, 0.8);
+      color: black;
+    }
+
+    /* Alt Menü */
+    .alt-menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(36, 35, 35, 0.029);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      padding: 20px 0;
+      border-top: 1px solid rgba(0, 0, 0, 0.25);
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .alt-menu.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .alt-menu a {
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 10px 15px;
+      border: 1px solid rgba(138, 43, 226, 0.25);
+      border-radius: 10px;
+      transition: 0.3s ease;
+    }
+
+    .alt-menu a:hover {
+      background-color: rgb(41, 3, 77);
+    }
+
+    /* Menü Açma/Kapama Butonu */
+    .menu-toggle-btn {
+      position: fixed;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 60px;
+      background-color: rgba(100, 100, 100, 0.041);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      transition: opacity 0.3s ease, background-color 0.3s ease;
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.6);
+    }
+
+    .menu-toggle-btn.active {
+      opacity: 0.5;
+      background-color: rgb(175, 175, 175);
+    }
+    .menu-toggle-btn img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+    }
+    .menu-toggle-btn:hover {
+      background-color: rgba(29, 174, 0, 0.8);
+    }
+
+    /* Tema Kutusu */
+    .tema-kutusu {
+      position: absolute;
+      top: 0;
+      left: calc(40px + 10px + 20px);
+      background: rgba(0,0,0,0.8);
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 320px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      z-index: 1;
+      display: none;
+    }
+
+    .tema-kutusu img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      cursor: pointer;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      transition: border-color 0.3s;
+    }
+
+    .tema-kutusu img:hover {
+      border-color: #00aaff;
+    }
+
+    /* Öneri Kutusu */
+    .oneri-kutusu {
+      position: absolute;
+      top: 0;
+      left: calc(40px + 10px + 40px + 10px + 10px);
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      z-index: 1;
+      width: 250px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      display: none;
+    }
+
+    .oneri-kutusu h3 {
+      margin-bottom: 5px;
+      color: #00aaff;
+    }
+
+    .oneri-kutusu textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      outline: none;
+      resize: vertical;
+    }
+
+    .oneri-kutusu textarea::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .oneri-kutusu button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      background-color: rgba(138, 43, 226, 0.7);
+      color: white;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .oneri-kutusu button:hover {
+      background-color: rgba(138, 43, 226, 1);
+    }
+
+    /* Görev Ekle Kutusu */
+    .gorev-ekle-kutusu {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        padding: 25px;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        z-index: 100;
+        width: 90%;
+        max-width: 400px;
+        display: none;
+        flex-direction: column;
+        gap: 15px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+        color: #fff;
+    }
+
+    .gorev-ekle-kutusu h3 {
+        margin-bottom: 10px;
+        color: #00aaff;
+        text-align: center;
+        font-size: 1.4rem;
+    }
+
+    .gorev-ekle-kutusu input[type="text"],
+    .gorev-ekle-kutusu textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-family: 'Segoe UI', sans-serif;
+        outline: none;
+        font-size: 0.95rem;
+    }
+
+    .gorev-ekle-kutusu input[type="text"]::placeholder,
+    .gorev-ekle-kutusu textarea::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .gorev-ekle-kutusu textarea {
+        resize: vertical;
+        min-height: 80px;
+        max-height: 200px;
+    }
+
+    .gorev-alt-kontroller {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 5px;
+    }
+
+    .yildiz-ikona {
+        font-size: 1.8rem;
+        cursor: pointer;
+        transition: transform 0.2s ease, color 0.2s ease;
+        user-select: none;
+    }
+
+    .yildiz-ikona.active {
+        color: gold;
+        text-shadow: 0 0 10px gold, 0 0 20px gold;
+        transform: scale(1.1);
+    }
+
+    .yildiz-ikona:hover {
+        transform: scale(1.1);
+    }
+
+    .gorev-ekle-kutusu button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        background-color: rgba(138, 43, 226, 0.8);
+        color: white;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .gorev-ekle-kutusu button:hover {
+        background-color: rgba(138, 43, 226, 1);
+        transform: translateY(-2px);
+    }
+
+    .kapat-butonu {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .kapat-butonu:hover {
+        color: white;
+    }
+
+    /* Sayfa arka planına hafif karartma eklemek için (overlay) */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+        display: none;
+    }
+
+    /* Sağ Menü Stilleri */
+    .sag-menu {
+        position: fixed;
+        top: 60px;
+        right: -300px;
+        height: calc(100vh - 60px - 80px);
+        width: 300px;
+        background: rgba(0, 0, 0, 0.05);
+        backdrop-filter: blur(10px);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 50;
+        padding: 15px;
+        padding-bottom: 90px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        transition: right 0.3s ease;
+    }
+
+    .sag-menu.active {
+        right: 0;
+    }
+
+    .sag-menu h4 {
+        color: #6600ff;
+        margin-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 5px;
+    }
+
+    .sag-menu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sag-menu li {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+        word-wrap: break-word;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .sag-menu li strong {
+        color: #e0e0e0;
+        margin-bottom: 5px;
+        font-size: 1rem;
+    }
+
+    .sag-menu li .icerik {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.85rem;
+    }
+
+    .sag-menu li.onemli {
+        background-color: rgba(138, 43, 226, 0.3);
+        border-color: rgba(255, 238, 0, 0.6);
+    }
+
+    .sag-menu .sil-butonu {
+        position: absolute;
+        top: 5px;
+        right: 8px;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .sag-menu .sil-butonu:hover {
+        color: rgb(255, 50, 50);
+    }
+
+    /* Sağ menü açma/kapama butonu */
+    .sag-menu-toggle-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        font-size: 1.5rem;
+        transition: background 0.3s ease;
+        z-index: 51;
+        color: #fff;
+    }
+
+    .sag-menu-toggle-btn:hover {
+        background-color: rgba(0, 174, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="img">
+    <img src="assets/images/uzay karanlık kart.jpg" alt="arka plan">
+  </div>
+
+  <div class="sol-ust-kutular">
+    <div class="kutu" data-tooltip="ÖNERİ" id="oneriButonu">💡</div>
+    <div class="kutu" data-tooltip="TEMA">⋮</div>
+
+    <div class="oneri-kutusu" id="oneriKutusu">
+        <h3>Öneri Gönder</h3>
+        <textarea id="oneriInput" placeholder="Önerinizi buraya yazın..." rows="4"></textarea>
+        <button id="oneriGonderBtn">Gönder</button>
+    </div>
+
+    <div class="tema-kutusu" id="temaKutusu">
+      </div>
+  </div>
+
+  <div class="arama-container">
+    <input type="text" placeholder="Ara...">
+  </div>
+
+  <a href="JAGTASK.html">
+    <span class="kullanici-adi">JAGTALK</span>
+  </a>
+
+  <div class="sag-menu-toggle-btn" id="sagMenuToggleBtn" data-tooltip="Listeler">≡</div>
+
+  <div class="gorev-ekle-kutusu" id="gorevEkleKutusu">
+    <h3>Yeni Görev Ekle</h3>
+    <input type="text" id="gorevBaslik" placeholder="Görev Başlığı" maxlength="50" />
+    <textarea id="gorevIcerik" placeholder="Görev İçeriği..." rows="4" maxlength="200"></textarea>
+    <div class="gorev-alt-kontroller">
+        <span class="yildiz-ikona" id="onemliYildiz">⭐</span>
+        <button id="gorevEkleBtn">Ekle</button>
+    </div>
+    <span class="kapat-butonu" id="gorevKapatButonu">✖</span>
+  </div>
+
+  <div class="sag-menu" id="sagMenu">
+    <div>
+        <h4>GÖREVLER</h4>
+        <ul id="gorevListesi">
+            </ul>
+    </div>
+    <div>
+        <h4>ÖNEMLİLER</h4>
+        <ul id="onemliListesi">
+            </ul>
+    </div>
+    <div>
+        <h4>GELİŞMELER</h4>
+        <ul id="gelismeListesi">
+            </ul>
+    </div>
+  </div>
+
+  <div class="ana-icerik">
+    <div class="takvim-container">
+      <div class="ok" onclick="oncekiAy()">◀</div>
+      <div class="takvim">
+        <h2 id="ayYili"></h2>
+        <div class="gunler" id="gunler"></div>
+      </div>
+      <div class="ok" onclick="sonrakiAy()">▶</div>
+    </div>
+  </div>
+
+  <button class="menu-toggle-btn" id="menuToggleBtn" aria-label="Menüyü aç/kapat">
+    <img src="assets/images/jagtask logo.png" alt="Menü" style="width: 30px; height: 30px;">
+  </button>
+
+  <div class="alt-menu" id="altMenu">
+    <a href="#" id="hedefEkleLink">📜 HEDEF EKLE+</a>
+    <a href="#" id="gelisimEkleLink">📈 GELİŞİMİNİ EKLE+</a>
+    <a href="#" id="onemliEkleLink">⭐ ÖNEMLİ EKLE+</a>
+  </div>
+
+  <script>
+    const aylar = ["OCAK", "ŞUBAT", "MART", "NİSAN", "MAYIS", "HAZİRAN", "TEMMUZ", "AĞUSTOS", "EYLÜL", "EKİM", "KASIM", "ARALIK"];
+    let tarih = new Date();
+    let seciliTarih = null;
+
+    function takvimiGoster() {
+      const ayYili = document.getElementById("ayYili");
+      const gunler = document.getElementById("gunler");
+      const yil = tarih.getFullYear();
+      const ay = tarih.getMonth();
+      const bugun = new Date();
+
+      ayYili.textContent = `${aylar[ay]} ${yil}`;
+      gunler.innerHTML = "";
+
+      const ilkGun = new Date(yil, ay, 1).getDay();
+      const sonGun = new Date(yil, ay + 1, 0).getDate();
+
+      const bosGunSayisi = (ilkGun === 0) ? 6 : ilkGun - 1;
+
+      for (let i = 0; i < bosGunSayisi; i++) {
+        gunler.innerHTML += `<div></div>`;
+      }
+
+      for (let i = 1; i <= sonGun; i++) {
+        const gunDiv = document.createElement('div');
+        gunDiv.textContent = i;
+        gunDiv.addEventListener('click', () => {
+          seciliTarih = new Date(yil, ay, i);
+          openGorevEkleKutusu('hedef');
+        });
+
+        if (i === bugun.getDate() && ay === bugun.getMonth() && yil === bugun.getFullYear()) {
+          gunDiv.classList.add('bugun');
+        }
+
+        // Görevli günleri kontrol et
+        const gorevliGunler = JSON.parse(localStorage.getItem('gorevliGunler')) || [];
+        if (gorevliGunler.includes(`${i}-${ay}-${yil}`)) {
+          gunDiv.classList.add('gorevli');
+        }
+
+        gunler.appendChild(gunDiv);
+      }
+    }
+
+    function sonrakiAy() {
+      tarih.setMonth(tarih.getMonth() + 1);
+      takvimiGoster();
+    }
+
+    function oncekiAy() {
+      tarih.setMonth(tarih.getMonth() - 1);
+      takvimiGoster();
+    }
+
+    takvimiGoster();
+
+    // Alt menü butonu ve alt menü aç/kapa
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const altMenu = document.getElementById('altMenu');
+
+    menuToggleBtn.addEventListener('click', () => {
+      altMenu.classList.toggle('active');
+      menuToggleBtn.classList.toggle('active');
+      if (sagMenu.classList.contains('active')) {
+          sagMenu.classList.remove('active');
+      }
+    });
+
+    const temaKutu = document.getElementById('temaKutusu');
+    const temaButonu = document.querySelector('.sol-ust-kutular .kutu[data-tooltip="TEMA"]');
+    const arkaPlanImg = document.querySelector('.img img');
+
+    // Öneri kutusu elementlerini seç
+    const oneriButonu = document.getElementById('oneriButonu');
+    const oneriKutusu = document.getElementById('oneriKutusu');
+    const oneriGonderBtn = document.getElementById('oneriGonderBtn');
+    const oneriInput = document.getElementById('oneriInput');
+
+    // Görev ekleme kutusu elementlerini seç
+    const hedefEkleLink = document.getElementById('hedefEkleLink');
+    const gelisimEkleLink = document.getElementById('gelisimEkleLink');
+    const onemliEkleLink = document.getElementById('onemliEkleLink');
+
+    const gorevEkleKutusu = document.getElementById('gorevEkleKutusu');
+    const gorevKapatButonu = document.getElementById('gorevKapatButonu');
+    const gorevEkleBtn = document.getElementById('gorevEkleBtn');
+    const gorevBaslikInput = document.getElementById('gorevBaslik');
+    const gorevIcerikInput = document.getElementById('gorevIcerik');
+    const onemliYildiz = document.getElementById('onemliYildiz');
+
+    // Sağ menü elementlerini seç
+    const sagMenu = document.getElementById('sagMenu');
+    const gorevListesi = document.getElementById('gorevListesi');
+    const onemliListesi = document.getElementById('onemliListesi');
+    const gelismeListesi = document.getElementById('gelismeListesi');
+    const sagMenuToggleBtn = document.getElementById('sagMenuToggleBtn');
+
+    // Overlay elementi için değişken
+    let overlay;
+
+    const arkaPlanlar = [
+      "assets/images/karanlık kart kum.jpg",
+      "assets/images/karanlık kart  yıldırım.jpg",
+      "assets/images/çiçek karanlık kart.jpeg",
+      "assets/images/kılıç karanlık kart.jpeg",
+      "assets/images/yabanmersini karanlık kart.jpg",
+      "assets/images/uzay karanlık kart.jpg",
+    ];
+
+    // Tema kutusunu aç/kapa
+    temaButonu.addEventListener('click', () => {
+      if (oneriKutusu.style.display === 'flex') {
+        oneriKutusu.style.display = 'none';
+      }
+      if (gorevEkleKutusu.style.display === 'flex') {
+          gorevEkleKutusu.style.display = 'none';
+          if (overlay) {
+              overlay.style.display = 'none';
+          }
+      }
+      if (sagMenu.classList.contains('active')) {
+          sagMenu.classList.remove('active');
+      }
+
+      if (temaKutu.style.display === 'none' || temaKutu.style.display === '') {
+        temaKutu.style.display = 'grid';
+      } else {
+        temaKutu.style.display = 'none';
+      }
+    });
+
+    // Tema resimlerini oluşturup kutuya ekle
+    arkaPlanlar.forEach((url) => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = "Tema seçeneği";
+      img.title = "Tema değiştir";
+
+      img.addEventListener('click', () => {
+        arkaPlanImg.src = url;
+        temaKutu.style.display = 'none';
+      });
+
+      temaKutu.appendChild(img);
+    });
+
+    // Öneri butonuna tıklama olayı
+    oneriButonu.addEventListener('click', () => {
+        if (temaKutu.style.display === 'grid') {
+            temaKutu.style.display = 'none';
+        }
+        if (gorevEkleKutusu.style.display === 'flex') {
+            gorevEkleKutusu.style.display = 'none';
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+        if (sagMenu.classList.contains('active')) {
+            sagMenu.classList.remove('active');
+        }
+
+        if (oneriKutusu.style.display === 'none' || oneriKutusu.style.display === '') {
+            oneriKutusu.style.display = 'flex';
+        } else {
+            oneriKutusu.style.display = 'none';
+        }
+    });
+
+    // Gönder düğmesine tıklama olayı (Öneri kutusu için)
+    oneriGonderBtn.addEventListener('click', () => {
+        const oneriMetni = oneriInput.value.trim();
+
+        if (oneriMetni) {
+            alert("Öneriniz alındı, teşekkür ederiz!");
+            oneriInput.value = '';
+            oneriKutusu.style.display = 'none';
+        } else {
+            alert("Lütfen göndermek için bir öneri yazın.");
+        }
+    });
+
+    // Görev Ekleme Fonksiyonu
+    function openGorevEkleKutusu(type) {
+        if (altMenu.classList.contains('active')) {
+            altMenu.classList.remove('active');
+            menuToggleBtn.classList.remove('active');
+        }
+        if (sagMenu.classList.contains('active')) {
+            sagMenu.classList.remove('active');
+        }
+
+        temaKutu.style.display = 'none';
+        oneriKutusu.style.display = 'none';
+
+        gorevBaslikInput.value = '';
+        gorevIcerikInput.value = '';
+        onemliYildiz.classList.remove('active');
+
+        let kutuBasligi = "";
+        if (type === 'hedef') {
+            kutuBasligi = "Yeni Hedef Ekle";
+        } else if (type === 'gelisim') {
+            kutuBasligi = "Yeni Gelişim Ekle";
+        } else if (type === 'onemli') {
+            kutuBasligi = "Yeni Önemli Ekle";
+            onemliYildiz.classList.add('active');
+        }
+        gorevEkleKutusu.querySelector('h3').textContent = kutuBasligi;
+        gorevEkleKutusu.setAttribute('data-type', type);
+
+        gorevEkleKutusu.style.display = 'flex';
+
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.classList.add('overlay');
+            document.body.appendChild(overlay);
+        }
+        overlay.style.display = 'block';
+    }
+
+    // "HEDEF EKLE+" bağlantısına tıklama olayı
+    hedefEkleLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        openGorevEkleKutusu('hedef');
+    });
+
+    // "GELİŞİMİNİ EKLE+" bağlantısına tıklama olayı
+    gelisimEkleLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        openGorevEkleKutusu('gelisim');
+    });
+
+    // "ÖNEMLİ EKLE+" bağlantısına tıklama olayı
+    onemliEkleLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        openGorevEkleKutusu('onemli');
+    });
+
+    // Görev ekleme kutusunu kapatma butonu
+    gorevKapatButonu.addEventListener('click', () => {
+        gorevEkleKutusu.style.display = 'none';
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+        gorevBaslikInput.value = '';
+        gorevIcerikInput.value = '';
+        onemliYildiz.classList.remove('active');
+        gorevEkleKutusu.removeAttribute('data-type');
+    });
+
+    // Yıldız ikonuna tıklama olayı (Görev kutusu için)
+    onemliYildiz.addEventListener('click', () => {
+        onemliYildiz.classList.toggle('active');
+    });
+
+    // Görev Ekle butonuna tıklama olayı
+    gorevEkleBtn.addEventListener('click', () => {
+        const baslik = gorevBaslikInput.value.trim();
+        const icerik = gorevIcerikInput.value.trim();
+        const onemli = onemliYildiz.classList.contains('active');
+        const type = gorevEkleKutusu.getAttribute('data-type');
+
+        if (baslik && icerik) {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <strong>${baslik}</strong>
+                <span class="icerik">${icerik}</span>
+                <span class="sil-butonu">✖</span>
+            `;
+
+            if (onemli) {
+                listItem.classList.add('onemli');
+                onemliListesi.appendChild(listItem);
+            } else if (type === 'hedef') {
+                gorevListesi.appendChild(listItem);
+            } else if (type === 'gelisim') {
+                gelismeListesi.appendChild(listItem);
+            } else if (type === 'onemli') {
+                onemliListesi.appendChild(listItem);
+            }
+
+            listItem.querySelector('.sil-butonu').addEventListener('click', (e) => {
+                e.stopPropagation();
+                listItem.remove();
+                // Görev silindiğinde takvimdeki günün rengini eski haline getir
+                if (seciliTarih) {
+                    const gun = seciliTarih.getDate();
+                    const ay = seciliTarih.getMonth();
+                    const yil = seciliTarih.getFullYear();
+                    const gorevliGunler = JSON.parse(localStorage.getItem('gorevliGunler')) || [];
+                    const index = gorevliGunler.indexOf(`${gun}-${ay}-${yil}`);
+                    if (index > -1) {
+                        gorevliGunler.splice(index, 1);
+                        localStorage.setItem('gorevliGunler', JSON.stringify(gorevliGunler));
+                        takvimiGoster();
+                    }
+                }
+            });
+
+            gorevBaslikInput.value = '';
+            gorevIcerikInput.value = '';
+            onemliYildiz.classList.remove('active');
+            gorevEkleKutusu.style.display = 'none';
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+            gorevEkleKutusu.removeAttribute('data-type');
+
+            if (!sagMenu.classList.contains('active')) {
+                sagMenu.classList.add('active');
+            }
+
+            // Seçili tarih varsa görevli gün olarak işaretle
+            if (seciliTarih) {
+              const gun = seciliTarih.getDate();
+              const ay = seciliTarih.getMonth();
+              const yil = seciliTarih.getFullYear();
+              const gorevliGunler = JSON.parse(localStorage.getItem('gorevliGunler')) || [];
+              if (!gorevliGunler.includes(`${gun}-${ay}-${yil}`)) {
+                gorevliGunler.push(`${gun}-${ay}-${yil}`);
+                localStorage.setItem('gorevliGunler', JSON.stringify(gorevliGunler));
+                takvimiGoster();
+              }
+            }
+        } else {
+            alert("Lütfen başlık ve içerik alanlarını doldurun.");
+        }
+    });
+
+    // Sağ menü aç/kapa butonu
+    sagMenuToggleBtn.addEventListener('click', () => {
+        sagMenu.classList.toggle('active');
+        if (altMenu.classList.contains('active')) {
+            altMenu.classList.remove('active');
+            menuToggleBtn.classList.remove('active');
+        }
+        if (oneriKutusu.style.display === 'flex') {
+            oneriKutusu.style.display = 'none';
+        }
+        if (temaKutu.style.display === 'grid') {
+            temaKutu.style.display = 'none';
+        }
+        if (gorevEkleKutusu.style.display === 'flex') {
+            gorevEkleKutusu.style.display = 'none';
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+    });
+
+    // Sayfanın herhangi bir yerine tıklandığında kutuları kapat
+    document.addEventListener('click', (event) => {
+        const isClickInsideOneriBox = oneriKutusu.contains(event.target) || oneriButonu.contains(event.target);
+        const isClickInsideTemaBox = temaKutu.contains(event.target) || temaButonu.contains(event.target);
+        const isClickInsideGorevBoxTrigger = hedefEkleLink.contains(event.target) || gelisimEkleLink.contains(event.target) || onemliEkleLink.contains(event.target);
+        const isClickInsideGorevBox = gorevEkleKutusu.contains(event.target) || isClickInsideGorevBoxTrigger;
+
+        const isClickInsideAltMenu = altMenu.contains(event.target) || menuToggleBtn.contains(event.target);
+        const isClickInsideSagMenu = sagMenu.contains(event.target) || sagMenuToggleBtn.contains(event.target);
+
+        if (!isClickInsideOneriBox) {
+            oneriKutusu.style.display = 'none';
+        }
+        if (!isClickInsideTemaBox) {
+            temaKutu.style.display = 'none';
+        }
+        if (!isClickInsideGorevBox) {
+            if (gorevEkleKutusu.style.display === 'flex') {
+                gorevEkleKutusu.style.display = 'none';
+                if (overlay) {
+                    overlay.style.display = 'none';
+                }
+            }
+        }
+        if (!isClickInsideAltMenu) {
+            if (altMenu.classList.contains('active')) {
+                altMenu.classList.remove('active');
+                menuToggleBtn.classList.remove('active');
+            }
+        }
+        if (!isClickInsideSagMenu) {
+            if (sagMenu.classList.contains('active')) {
+                sagMenu.classList.remove('active');
+            }
+        }
+    }, true);
+  </script>
+</body>
+</html>
