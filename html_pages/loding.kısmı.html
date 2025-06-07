@@ -217,34 +217,21 @@
         formData.append('username', username);
         formData.append('password', password);
 
-        try {
-            const response = await fetch('http://localhost/gorev_takip_backend/login.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (username.length >= 1) {
+        if (username.length >= 1) {
                 messageDisplay.style.color = 'green';
-                messageDisplay.textContent = `Hoş geldiniz, ${result.name || result.username}! Yönlendiriliyorsunuz...`;
+                messageDisplay.textContent = `Hoş geldiniz, ${username}! Yönlendiriliyorsunuz...`;
 
-                localStorage.setItem('user_id', result.user_id);
-                localStorage.setItem('username', result.username);
-                localStorage.setItem('name', result.name);
-                localStorage.setItem('email', result.email);
+                // localStorage.setItem('user_id', result.user_id);
+                localStorage.setItem('username', username);
+                // localStorage.setItem('name', result.name);
+                // localStorage.setItem('email', result.email);
 
                 // Giriş başarılı olduğunda ana sayfaya yönlendirme satırı aktif hale getirildi
-                window.location.href = 'http://localhost/gorev_takip_frontend/html_pages/JAGTASK.html'; // <<< BU SATIR ARTIK AKTİF
+                window.location.href = 'https://jagtask-frontend.vercel.app/html_pages/JAGTASK.html'; // <<< BU SATIR ARTIK AKTİF
             } else {
                 messageDisplay.style.color = 'red';
-                messageDisplay.textContent = 'Giriş başarısız: ' + result.message;
+                messageDisplay.textContent = 'Giriş başarısız';
             }
-        } catch (error) {
-            console.error('Giriş sırasında bir hata oluştu:', error);
-            messageDisplay.style.color = 'red';
-            messageDisplay.textContent = 'Sunucuya bağlanırken bir hata oluştu. Laragonun çalıştığından emin olun.';
-        }
     });
 });
 
